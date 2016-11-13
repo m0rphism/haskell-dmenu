@@ -11,3 +11,10 @@ config = do
 
 main :: IO ()
 main = print =<< DMenu.runAsk config ["A","B","C"]
+
+repl :: IO ()
+repl = DMenu.repl config ["A","B","C"] $ \case
+  Left _pe → pure Nothing
+  Right ss → do
+    print ss
+    pure $ Just $ map (head ss ++ ) ["1","2","3"]

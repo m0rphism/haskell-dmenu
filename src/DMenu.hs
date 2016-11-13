@@ -2,7 +2,7 @@
 
 module DMenu (
     -- * Running DMenu
-    DMenuT, MonadDMenu, ProcessError, ask, run, runAsk,
+    DMenuT, MonadDMenu, ProcessError, ask, run, runAsk, repl,
     -- * Configuration
     Config(..),
     -- ** Lenses
@@ -115,6 +115,24 @@ run = flip evalStateT defConfig
 -- >   DMenu.prompt   .= "run"
 runAsk :: MonadIO m => DMenuT m a → [String] → m (Either ProcessError [String])
 runAsk ma entries = run $ ma >> ask entries
+
+-- | Run a repl. For example
+--
+-- > import qualified DMenu
+-- >
+-- > main :: IO ()
+-- > main = DMenu.repl config ["A","B","C"] $ \case
+-- >   Left _pe → pure Nothing
+-- >   Right ss → do
+-- >     print ss
+-- >     pure $ Just $ map (head ss ++ ) ["1","2","3"]
+repl :: MonadIO m => DMenuT m a → [String] → (Either ProcessError [String] → m (Maybe [String])) → m ()
+repl m0 ss0 f = run $ m0 >> go (Right ss0) where
+  go ess = do
+    mss ← lift $ f ess
+    forM_ mss $ \ss → do
+      ess' ← ask ss
+      go ess'
 
 -- | Contains the binary path and command line options of dmenu.
 -- The option descriptions are copied from the dmenu @man@ page.
