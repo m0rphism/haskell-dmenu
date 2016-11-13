@@ -1,7 +1,7 @@
 {-
   TODO
     - Add a remark, that stack exec may cause System.Process to fail finding
-      programs.
+      programs, and this can be circumvented by specifying an absolute path.
     - Support for a .dmenurc file.
 -}
 
