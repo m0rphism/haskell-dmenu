@@ -19,5 +19,5 @@ repl = DMenu.repl config ["A","B","C"] $ \case
     print ss
     pure $ Just $ map (head ss ++ ) ["1","2","3"]
 
-select:: IO ()
-select = print =<< DMenu.select config show [1..10::Int]
+runSelect:: IO ()
+runSelect = print =<< DMenu.runSelect config show [1..10::Int]
