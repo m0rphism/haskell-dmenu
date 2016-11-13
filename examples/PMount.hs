@@ -57,7 +57,7 @@ showBytes i
 getPartitionInfos ::  MonadIO m => m [(FilePath, String)]
 getPartitionInfos = do
   sOut ← runProcOr "cat" ["/proc/partitions"] "" ""
-  forM (drop 2 $ init $ lines sOut) $ \l → do
+  forM (drop 2 $ lines sOut) $ \l → do
     let numBlocks :: Integer = read $ head $ words $ skipNumbersAndWS 2 l
     let devPath = head (words $ skipNumbersAndWS 3 l)
     pure (devPath, showBytes $ numBlocks * 1024)
@@ -91,10 +91,16 @@ main = getArgs >>= \case
       Right ((dev,_):_) | not (null dev) → callProcess "pmount" [dev]
       _             → pure ()
   ["-u"] → do
-    devs ← filterWithPrefixes devPathPrefixesU <$> getMountedDevs
-    DMenu.runAsk (DMenu.prompt .= "umount") devs >>= \case
-      Right (dev:_) | not (null dev) → callProcess "pumount" [dev]
+    devs ← map (drop 5) . filterWithPrefixes devPathPrefixesU <$> getMountedDevs
+    devInfos ← getPartitionInfos
+    let devInfos' = map (fromMaybe "" . flip lookup devInfos) devs
+    let devs' = zip devs $ zipWith (\x y → x++"  "++y) (fillWithSP devs) (fillWithSPR devInfos')
+    DMenu.runSelect (DMenu.prompt .= "umount") snd devs' >>= \case
+      Right ((dev,_):_) | not (null dev) → callProcess "pumount" [dev]
       _             → pure ()
+    -- DMenu.runAsk (DMenu.prompt .= "umount") devs >>= \case
+    --   Right (dev:_) | not (null dev) → callProcess "pumount" [dev]
+    --   _             → pure ()
   _ → do
     putStrLn usage
     exitFailure

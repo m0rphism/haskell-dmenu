@@ -180,7 +180,13 @@ ask entries = do
       ExitSuccess → Right $ lines sOut
       ExitFailure i → Left (i, sErr)
 
--- | Run a @StateT CmdOpts m a@ action using an empty set of command line options as initial state. For example
+-- | Run a @StateT CmdOpts m a@ action using the command line options from the
+-- config file or an empty set of options as initial state.
+--
+-- The config file is located at @~/.haskell-dmenu.conf@.
+-- For an example see te @haskell-dmenu.conf@ file in the git repository.
+--
+-- For example
 --
 -- > import qualified DMenu
 -- >
