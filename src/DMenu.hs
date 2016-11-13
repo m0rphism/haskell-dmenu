@@ -2,11 +2,11 @@
 
 module DMenu (
     -- * Running DMenu
-    runDMenu, runDMenuM,
+    DMenuT, MonadDMenu, run, ask, runAsk,
     -- * Configuration
     Config(..), defConfig,
     -- ** Lenses
-    dmenuBinaryPath,
+    binaryPath,
     displayAtBottom,
     displayNoItemsIfEmpty,
     grabKeyboardBeforeStdin,
@@ -39,6 +39,8 @@ module DMenu (
     printVersionAndExit,
     -- * Color
     Color(..),
+    -- * Reexports from @lens@
+    (.=),
   ) where
 
 import Control.Monad.State.Strict
@@ -52,49 +54,66 @@ import Numeric (showHex)
 --   procHandle ← spawnCommand cmd
 --   exitCode ← waitForProcess procHandle
 
--- | Run DMenu given a @Config@  and a list of @String@s to choose from,
--- and return either an exitcode on failure, or the list of selected entries.
+type DMenuT = StateT Config
+type MonadDMenu m = (MonadIO m, MonadState Config m)
+
+-- | Run a @DMenuT m@ action. For example
+--
+-- > import qualified DMenu
+-- >
+-- > main :: IO ()
+-- > main = print =<< DMenu.run (do config; DMenu.ask ["A","B","C"])
+-- >
+-- > config :: DMenu.MonadDMenu m => m ()
+-- > config = do
+-- >   DMenu.numLines .= 10
+-- >   DMenu.prompt   .= "run"
+run :: MonadIO m => DMenuT m a → m a
+run = flip evalStateT defConfig
+
+-- | Run DMenu to let the user choose from a list of @String@s,
+-- and return either an exitcode and the @stderr@ output on failure, or the
+-- list of selected entries.
 --
 -- The exit code is @1@ if the user cancels the selection, e.g. by pressing the
 -- escape key.
---
--- > test :: IO
--- > test = print =<< runDMenu cfg ["A", "B", "C"] where
--- >   cfg = defConfig {
--- >     _caseInsensitive = True,
--- >     _numLines        = 10,
--- >   }
-runDMenu :: MonadIO m => Config → [String] → m (Either Int [String])
-runDMenu cfg entries = liftIO $ do
-  (exitCode, sOut, sErr) ← readCreateProcessWithExitCode
-    (proc (_dmenuBinaryPath cfg) (configToArgs cfg))
-    (unlines entries)
-  unless (null sErr) $ do
-    putStrLn $ "Error: " ++ sErr
-    putStrLn $ "Binary: " ++ show (_dmenuBinaryPath cfg)
-    putStrLn $ "Args: " ++ show (configToArgs cfg)
-    putStrLn $ "Entries: " ++ show entries
-  pure $ case exitCode of
-    ExitSuccess → Right $ lines sOut
-    ExitFailure i → Left i
+ask :: (MonadIO m, MonadState Config m) => [String] → m (Either (Int, String) [String])
+ask entries = do
+  cfg ← get
+  liftIO $ do
+    (exitCode, sOut, sErr) ← readCreateProcessWithExitCode
+      (proc (_binaryPath cfg) (configToArgs cfg))
+      (unlines entries)
+    unless (null sErr) $ do
+      putStrLn $ "Error: " ++ sErr
+      putStrLn $ "Binary: " ++ show (_binaryPath cfg)
+      putStrLn $ "Args: " ++ show (configToArgs cfg)
+      putStrLn $ "Entries: " ++ show entries
+    pure $ case exitCode of
+      ExitSuccess → Right $ lines sOut
+      ExitFailure i → Left (i, sErr)
 
--- | Same as @runDMenu@, but the config is specified by running an action of the
--- @State Config@ monad on the @defConfig@.
--- In combination with the @Config@ @Lens@es, this can be used as followed:
+-- | Convenience function combining @run@ and @ask@.
 --
--- > test :: IO
--- > test = print =<< runDMenuM cfg ["A", "B", "C"] where
--- >   cfg = do
--- >     caseInsensitive .= True
--- >     numLines        .= 10
-runDMenuM :: MonadIO m => State Config () → [String] → m (Either Int [String])
-runDMenuM mCfg entries = runDMenu (execState mCfg defConfig) entries
+-- The following example is equivalent to the example for @run@:
+--
+-- > import qualified DMenu
+-- >
+-- > main :: IO ()
+-- > main = print =<< DMenu.runAsk config ["A","B","C"]
+-- >
+-- > config :: DMenu.MonadDMenu m => m ()
+-- > config = do
+-- >   DMenu.numLines .= 10
+-- >   DMenu.prompt   .= "run"
+runAsk :: MonadIO m => DMenuT m a → [String] → m (Either (Int, String) [String])
+runAsk ma entries = run $ ma >> ask entries
 
 -- | Contains the binary path and command line options of dmenu.
 -- The option descriptions are copied from the dmenu @man@ page.
 data Config = Config
   { -- | Path to the the dmenu executable file.
-    _dmenuBinaryPath :: FilePath
+    _binaryPath :: FilePath
     -- | @-b@; dmenu appears at the bottom of the screen.
   , _displayAtBottom :: Bool
     -- | @-q@; dmenu will not show any items if the search string is empty.
@@ -159,7 +178,7 @@ data Config = Config
 
 defConfig :: Config
 defConfig = Config
-  { _dmenuBinaryPath = "dmenu"
+  { _binaryPath = "dmenu"
   , _displayAtBottom = False
   , _displayNoItemsIfEmpty = False
   , _grabKeyboardBeforeStdin = False
