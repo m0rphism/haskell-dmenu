@@ -85,8 +85,11 @@ data Color
   | RGBColorF Float Float Float
   deriving (Eq, Ord, Read, Show)
 
+fillLeft :: Char → Int → String → String
+fillLeft c i s = replicate (i - length s) c ++ s
+
 showColorAsHex :: Color → String
-showColorAsHex (HexColor i) = showHex i ""
+showColorAsHex (HexColor i) = "#" ++ fillLeft '0' 6 (showHex i "")
 showColorAsHex (RGBColor r g b) = showColorAsHex $ HexColor $ r*256*256 + g*256 + b
 showColorAsHex (RGBColorF r g b) = showColorAsHex $ RGBColor (f r) (f g) (f b)
   where f = floor . (* 255)
