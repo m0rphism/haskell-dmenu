@@ -2,6 +2,7 @@
   TODO
     - Add a remark, that stack exec may cause System.Process to fail finding
       programs.
+    - Support for a .dmenurc file.
 -}
 
 {-# LANGUAGE RecordWildCards, TemplateHaskell #-}
