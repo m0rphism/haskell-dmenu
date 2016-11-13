@@ -7,7 +7,7 @@ import System.Exit
 import System.Process
 import Control.Exception
 import Data.Maybe
-import Data.List (isPrefixOf)
+import Data.List (isPrefixOf, sort)
 
 import qualified DMenu
 
@@ -20,6 +20,17 @@ cmdOpts = do
 getDevs :: MonadIO m => m [String]
 getDevs = liftIO $ listDirectoryDef "/dev"
 
+runProc :: MonadIO m => String → [String] → String → m (Either String String)
+runProc prog args sIn = liftIO $ do
+  (exitCode, sOut, sErr) ←
+    readCreateProcessWithExitCode (proc prog args) sIn
+  pure $ case exitCode of
+    ExitSuccess   → Right sOut
+    ExitFailure _ → Left sErr
+
+runProcOr :: MonadIO m => String → [String] → String → String → m String
+runProcOr prog args sIn sDef = either (const sDef) id <$> runProc prog args sIn
+
 filterWithPrefixes :: [String] → [String] → [String]
 filterWithPrefixes ps = filter $ \s → any (`isPrefixOf` s) ps
 
@@ -30,13 +41,47 @@ devPathPrefixesU :: [String]
 devPathPrefixesU = map ("/dev/" ++) [ "sd" ]
 
 listDirectoryDef :: MonadIO m => FilePath → m [FilePath]
-listDirectoryDef p = liftIO $ listDirectory p `catch` (\(_ :: SomeException) → pure [])
+listDirectoryDef p = liftIO $ fmap sort $ listDirectory p `catch` (\(_ :: SomeException) → pure [])
+
+skipNumbersAndWS :: Int → String → String
+skipNumbersAndWS = go False where
+  go _ 0 s                           = dropWhile (`elem` [' ', '\t']) $ s
+  go _ _ ""                          = ""
+  go b n (c:s) | c `elem` ['0'..'9'] = go True n s
+               | otherwise           = go False (if b then n-1 else n) s
+
+showBytes :: Integer → String
+showBytes i
+  | i < k         = show i ++ " B"
+  | i < k*k       = show (i `div` k) ++ " KB"
+  | i < k*k*k     = show (i `div` (k*k)) ++ " MB"
+  | i < k*k*k*k   = show (i `div` (k*k*k)) ++ " GB"
+  | i < k*k*k*k*k = show (i `div` (k*k*k*k)) ++ " TB"
+  | otherwise     = show (i `div` (k*k*k*k*k)) ++ " PB"
+  where k = 1024
+
+getPartitionInfos ::  MonadIO m => m [(FilePath, String)]
+getPartitionInfos = do
+  sOut ← runProcOr "cat" ["/proc/partitions"] "" ""
+  forM (drop 2 $ init $ lines sOut) $ \l → do
+    let numBlocks :: Integer = read $ head $ words $ skipNumbersAndWS 2 l
+    let devPath = head (words $ skipNumbersAndWS 3 l)
+    pure (devPath, showBytes $ numBlocks * 1024)
+
+fillWithSP :: [String] → [String]
+fillWithSP ss = map f ss where
+  f s = s ++ replicate (maxLength - length s) ' '
+  maxLength = maximum (map length ss)
+
+fillWithSPR :: [String] → [String]
+fillWithSPR ss = map f ss where
+  f s = replicate (maxLength - length s) ' ' ++ s
+  maxLength = maximum (map length ss)
 
 getMountedDevs :: MonadIO m => m [FilePath]
 getMountedDevs = liftIO $ do
   (exitCode, sOut, _sErr) ← readCreateProcessWithExitCode
-    (proc "pmount" [])
-    ""
+    (proc "pmount" []) ""
   pure $ case exitCode of
     ExitSuccess   → map ((!! 0) . words) $ drop 1 $ init $ lines sOut
     ExitFailure _ → []
@@ -45,8 +90,11 @@ main :: IO ()
 main = getArgs >>= \case
   [] → do
     devs ← filterWithPrefixes devPathPrefixes <$> getDevs
-    DMenu.runAsk (do cmdOpts; DMenu.prompt .= "mount") devs >>= \case
-      Right (dev:_) | not (null dev) → callProcess "pmount" [dev]
+    devInfos ← getPartitionInfos
+    let devInfos' = map (fromMaybe "" . flip lookup devInfos) devs
+    let devs' = zip devs $ zipWith (\x y → x++"  "++y) (fillWithSP devs) (fillWithSPR devInfos')
+    DMenu.runSelect (do cmdOpts; DMenu.prompt .= "mount") snd devs' >>= \case
+      Right ((dev,_):_) | not (null dev) → callProcess "pmount" [dev]
       _             → pure ()
   ["-u"] → do
     devs ← filterWithPrefixes devPathPrefixesU <$> getMountedDevs
