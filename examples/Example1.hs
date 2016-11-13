@@ -1,7 +1,5 @@
 import qualified DMenu
 import Control.Lens
-import Control.Monad.IO.Class
-import Control.Monad.State
 
 config :: DMenu.MonadDMenu m => m ()
 config = do

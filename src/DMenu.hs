@@ -2,9 +2,9 @@
 
 module DMenu (
     -- * Running DMenu
-    DMenuT, MonadDMenu, run, ask, runAsk,
+    DMenuT, MonadDMenu, ProcessError, ask, run, runAsk,
     -- * Configuration
-    Config(..), defConfig,
+    Config(..),
     -- ** Lenses
     binaryPath,
     displayAtBottom,
@@ -45,41 +45,27 @@ module DMenu (
 
 import Control.Monad.State.Strict
 import Control.Lens
-import Data.List (dropWhile, takeWhile)
 import System.Exit
 import System.Process
 import Numeric (showHex)
 
--- readCreateCommandWithExitCode :: String → String → IO (ExistCode, String, String)
--- readCreateCommandWithExitCode cmd sIn = do
---   procHandle ← spawnCommand cmd
---   exitCode ← waitForProcess procHandle
-
+-- | A state monad transformer in which the command line options of @dmenu@ can
+-- be configured.
 type DMenuT = StateT Config
+
+-- | The @MonadIO@ constraint additionally allows to spawn processes with
+-- @System.Process@ in between.
 type MonadDMenu m = (MonadIO m, MonadState Config m)
+
+-- | When a spawned process fails, this type is used to represent the exit code
+-- and @stderr@ output.
 type ProcessError = (Int, String)
 
--- | Run a @DMenuT m@ action. For example
+-- | Run DMenu to let the user choose a sub-list of @String@s.
 --
--- > import qualified DMenu
--- >
--- > main :: IO ()
--- > main = print =<< DMenu.run (do config; DMenu.ask ["A","B","C"])
--- >
--- > config :: DMenu.MonadDMenu m => m ()
--- > config = do
--- >   DMenu.numLines .= 10
--- >   DMenu.prompt   .= "run"
-run :: MonadIO m => DMenuT m a → m a
-run = flip evalStateT defConfig
-
--- | Run DMenu to let the user choose from a list of @String@s,
--- and return either an exitcode and the @stderr@ output on failure, or the
--- list of selected entries.
---
--- The exit code is @1@ if the user cancels the selection, e.g. by pressing the
--- escape key.
-ask :: (MonadIO m, MonadState Config m) => [String] → m (Either ProcessError [String])
+-- The exit code in the @ProcessError@ is @1@ if the user cancels the selection,
+-- e.g. by pressing the escape key.
+ask :: MonadDMenu m => [String] → m (Either ProcessError [String])
 ask entries = do
   cfg ← get
   liftIO $ do
@@ -94,6 +80,25 @@ ask entries = do
     pure $ case exitCode of
       ExitSuccess → Right $ lines sOut
       ExitFailure i → Left (i, sErr)
+
+-- readCreateCommandWithExitCode :: String → String → IO (ExistCode, String, String)
+-- readCreateCommandWithExitCode cmd sIn = do
+--   procHandle ← spawnCommand cmd
+--   exitCode ← waitForProcess procHandle
+
+-- | Run a @StateT Config m a@ action using an empty set of command line options as initial state. For example
+--
+-- > import qualified DMenu
+-- >
+-- > main :: IO ()
+-- > main = print =<< DMenu.run (do config; DMenu.ask ["A","B","C"])
+-- >
+-- > config :: DMenu.MonadDMenu m => m ()
+-- > config = do
+-- >   DMenu.numLines .= 10
+-- >   DMenu.prompt   .= "run"
+run :: MonadIO m => DMenuT m a → m a
+run = flip evalStateT defConfig
 
 -- | Convenience function combining @run@ and @ask@.
 --
