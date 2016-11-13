@@ -2,7 +2,7 @@
 
 module DMenu (
     -- * Running DMenu
-    DMenuT, MonadDMenu, ProcessError, ask, run, runAsk, repl,
+    DMenuT, MonadDMenu, ProcessError, ask, run, runAsk, select, repl,
     -- * Configuration
     Config(..),
     -- ** Lenses
@@ -45,6 +45,7 @@ module DMenu (
 
 import Control.Monad.State.Strict
 import Control.Lens
+import Data.Maybe
 import System.Exit
 import System.Process
 import Numeric (showHex)
@@ -113,8 +114,26 @@ run = flip evalStateT defConfig
 -- > config = do
 -- >   DMenu.numLines .= 10
 -- >   DMenu.prompt   .= "run"
-runAsk :: MonadIO m => DMenuT m a → [String] → m (Either ProcessError [String])
-runAsk ma entries = run $ ma >> ask entries
+runAsk :: MonadIO m => DMenuT m () → [String] → m (Either ProcessError [String])
+runAsk m0 entries = run $ m0 >> ask entries
+
+-- | Same as @runAsk@, but allows the user to select from a list of arbitrary
+-- elements @xs@, which have a @String@ representation @f@.
+--
+-- For example
+--
+-- > import qualified DMenu
+-- >
+-- > main :: IO ()
+-- > main = print =<< DMenu.select config show [1..10::Int]
+-- >
+-- > config :: DMenu.MonadDMenu m => m ()
+-- > config = do
+-- >   DMenu.numLines .= 10
+-- >   DMenu.prompt   .= "run"
+select :: MonadIO m => DMenuT m () → (a → String) → [a] → m (Either ProcessError [a])
+select m0 f xs = fmap (fmap (fromJust . flip lookup m)) <$> runAsk m0 (map f xs)
+  where m = [ (f x, x) | x ← xs ]
 
 -- | Run a repl. For example
 --

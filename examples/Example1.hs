@@ -18,3 +18,6 @@ repl = DMenu.repl config ["A","B","C"] $ \case
   Right ss → do
     print ss
     pure $ Just $ map (head ss ++ ) ["1","2","3"]
+
+select:: IO ()
+select = print =<< DMenu.select config show [1..10::Int]
