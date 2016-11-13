@@ -45,6 +45,7 @@ module DMenu (
 
 import Control.Monad.State.Strict
 import Control.Lens
+import Data.List (dropWhile, takeWhile)
 import System.Exit
 import System.Process
 import Numeric (showHex)
@@ -56,6 +57,7 @@ import Numeric (showHex)
 
 type DMenuT = StateT Config
 type MonadDMenu m = (MonadIO m, MonadState Config m)
+type ProcessError = (Int, String)
 
 -- | Run a @DMenuT m@ action. For example
 --
@@ -77,7 +79,7 @@ run = flip evalStateT defConfig
 --
 -- The exit code is @1@ if the user cancels the selection, e.g. by pressing the
 -- escape key.
-ask :: (MonadIO m, MonadState Config m) => [String] → m (Either (Int, String) [String])
+ask :: (MonadIO m, MonadState Config m) => [String] → m (Either ProcessError [String])
 ask entries = do
   cfg ← get
   liftIO $ do
@@ -106,7 +108,7 @@ ask entries = do
 -- > config = do
 -- >   DMenu.numLines .= 10
 -- >   DMenu.prompt   .= "run"
-runAsk :: MonadIO m => DMenuT m a → [String] → m (Either (Int, String) [String])
+runAsk :: MonadIO m => DMenuT m a → [String] → m (Either ProcessError [String])
 runAsk ma entries = run $ ma >> ask entries
 
 -- | Contains the binary path and command line options of dmenu.
