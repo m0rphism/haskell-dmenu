@@ -1,9 +1,11 @@
 {-# LANGUAGE RecordWildCards, TemplateHaskell #-}
 
 module DMenu (
-    Color(..),
+    -- * Running DMenu
     runDMenu, runDMenuM,
+    -- * Configuration
     Config(..), defConfig,
+    -- ** Lenses
     dmenuBinaryPath,
     displayAtBottom,
     displayNoItemsIfEmpty,
@@ -35,6 +37,8 @@ module DMenu (
     underlineColor,
     historyFile,
     printVersionAndExit,
+    -- * Color
+    Color(..),
   ) where
 
 import Control.Monad.State.Strict
@@ -43,23 +47,23 @@ import System.Exit
 import System.Process
 import Numeric (showHex)
 
-data Color
-  = HexColor Int
-  | RGBColor Int Int Int
-  | RGBColorF Float Float Float
-  deriving (Eq, Ord, Read, Show)
-
-showColorAsHex :: Color → String
-showColorAsHex (HexColor i) = showHex i ""
-showColorAsHex (RGBColor r g b) = showColorAsHex $ HexColor $ r*256*256 + g*256 + b
-showColorAsHex (RGBColorF r g b) = showColorAsHex $ RGBColor (f r) (f g) (f b)
-  where f = floor . (* 255)
-
 -- readCreateCommandWithExitCode :: String → String → IO (ExistCode, String, String)
 -- readCreateCommandWithExitCode cmd sIn = do
 --   procHandle ← spawnCommand cmd
 --   exitCode ← waitForProcess procHandle
 
+-- | Run DMenu given a [Config]  and a list of [String]s to choose from,
+-- and return either an exitcode on failure, or the list of selected entries.
+--
+-- The exit code is [1] if the user cancels the selection, e.g. by pressing the
+-- escape key.
+--
+-- > test :: IO
+-- > test = print =<< runDMenu cfg ["A", "B", "C"] where
+-- >   cfg = defConfig {
+-- >     _caseInsensitive = True,
+-- >     _numLines        = 10,
+-- >   }
 runDMenu :: MonadIO m => Config → [String] → m (Either Int [String])
 runDMenu cfg entries = liftIO $ do
   (exitCode, sOut, sErr) ← readCreateProcessWithExitCode
@@ -74,71 +78,82 @@ runDMenu cfg entries = liftIO $ do
     ExitSuccess → Right $ lines sOut
     ExitFailure i → Left i
 
+-- | Same as [runDMenu], but the config is specified by running an action of the
+-- [State Config] monad on the [defConfig].
+-- In combination with the [Config] [Lens]es, this can be used as followed:
+--
+-- > test :: IO
+-- > test = print =<< runDMenuM cfg ["A", "B", "C"] where
+-- >   cfg = do
+-- >     caseInsensitive .= True
+-- >     numLines        .= 10
 runDMenuM :: MonadIO m => State Config () → [String] → m (Either Int [String])
 runDMenuM mCfg entries = runDMenu (execState mCfg defConfig) entries
 
+-- | Contains the binary path and command line options of dmenu.
+-- The option descriptions are copied from the dmenu `man` page.
 data Config = Config
-    -- Path to the the dmenu executable file.
-  { _dmenuBinaryPath :: FilePath
-    -- -b     dmenu appears at the bottom of the screen.
+  { -- | Path to the the dmenu executable file.
+    _dmenuBinaryPath :: FilePath
+    -- | -b     dmenu appears at the bottom of the screen.
   , _displayAtBottom :: Bool
-    -- -q     dmenu will not show any items if the search string is empty.
+    -- | -q     dmenu will not show any items if the search string is empty.
   , _displayNoItemsIfEmpty :: Bool
-    -- -f     dmenu grabs the keyboard before reading stdin.  This is faster, but will lock up X until stdin reaches end-of-file.
+    -- | -f     dmenu grabs the keyboard before reading stdin.  This is faster, but will lock up X until stdin reaches end-of-file.
   , _grabKeyboardBeforeStdin :: Bool
-    -- -r     activates filter mode. All matching items currently shown in the list will be selected, starting with the item that is highlighted and wrapping around to the beginning of the list.
+    -- | -r     activates filter mode. All matching items currently shown in the list will be selected, starting with the item that is highlighted and wrapping around to the beginning of the list.
   , _filterMode :: Bool
-    -- -i     dmenu matches menu items case insensitively.
+    -- | -i     dmenu matches menu items case insensitively.
   , _caseInsensitive :: Bool
-    -- -z     dmenu uses fuzzy matching. It matches items that have all characters entered, in sequence they are entered, but there may be any number of characters between matched characters.  For example it takes "txt" makes it to "*t*x*t" glob pattern and checks if it matches.
+    -- | -z     dmenu uses fuzzy matching. It matches items that have all characters entered, in sequence they are entered, but there may be any number of characters between matched characters.  For example it takes "txt" makes it to "*t*x*t" glob pattern and checks if it matches.
   , _fuzzyMatching :: Bool
-    -- -t     dmenu uses space-separated tokens to match menu items. Using this overrides -z option.
+    -- | -t     dmenu uses space-separated tokens to match menu items. Using this overrides -z option.
   , _tokenMatching :: Bool
-    -- -mask  dmenu masks input with asterisk characters (*).
+    -- | -mask  dmenu masks input with asterisk characters (*).
   , _maskInputWithStar :: Bool
-    -- -noinput  dmenu ignores input from stdin (equivalent to: echo | dmenu).
+    -- | -noinput  dmenu ignores input from stdin (equivalent to: echo | dmenu).
   , _ignoreStdin :: Bool
-    -- -s screen  dmenu apears on the specified screen number. Number given corespondes to screen number in X configuration.
+    -- | -s screen  dmenu apears on the specified screen number. Number given corespondes to screen number in X configuration.
   , _screenIx :: Int
-    -- -name name  defines window name for dmenu. Defaults to "dmenu".
+    -- | -name name  defines window name for dmenu. Defaults to "dmenu".
   , _windowName :: String
-    -- -class class  defines window class for dmenu. Defaults to "Dmenu".
+    -- | -class class  defines window class for dmenu. Defaults to "Dmenu".
   , _windowClass :: String
-    -- -o opacity  defines window opacity for dmenu. Defaults to 1.0.
+    -- | -o opacity  defines window opacity for dmenu. Defaults to 1.0.
   , _windowOpacity :: Double
-    -- -dim opacity  enables screen dimming when dmenu appers. Takes dim opacity as argument.
+    -- | -dim opacity  enables screen dimming when dmenu appers. Takes dim opacity as argument.
   , _windowDimOpacity :: Double
-    -- -dc color  defines color of screen dimming. Active only when -dim in effect. Defautls to black (#000000)
+    -- | -dc color  defines color of screen dimming. Active only when -dim in effect. Defautls to black (#000000)
   , _windowDimColor :: Color
-    -- -l lines  dmenu lists items vertically, with the given number of lines.
+    -- | -l lines  dmenu lists items vertically, with the given number of lines.
   , _numLines :: Int
-    -- -h height  defines the height of the bar in pixels.
+    -- | -h height  defines the height of the bar in pixels.
   , _heightInPixels :: Int
-    -- -uh height  defines the height of the underline in pixels.
+    -- | -uh height  defines the height of the underline in pixels.
   , _underlineHeightInPixels :: Int
-    -- -p prompt  defines the prompt to be displayed to the left of the input field.
+    -- | -p prompt  defines the prompt to be displayed to the left of the input field.
   , _prompt :: String
-    -- -fn font  defines the font or font set used. eg. "fixed" or "Monospace-12:normal" (an xft font)
+    -- | -fn font  defines the font or font set used. eg. "fixed" or "Monospace-12:normal" (an xft font)
   , _font :: String
-    -- -x xoffset  defines the offset from the left border of the screen.
+    -- | -x xoffset  defines the offset from the left border of the screen.
   , _windowOffsetX :: Int
-    -- -y yoffset  defines the offset from the top border of the screen.
+    -- | -y yoffset  defines the offset from the top border of the screen.
   , _windowOffsetY :: Int
-    -- -w width  defines the desired menu window width.
+    -- | -w width  defines the desired menu window width.
   , _width :: Int
-    -- -nb color  defines the normal background color.  #RGB, #RRGGBB, and X color names are supported.
+    -- | -nb color  defines the normal background color.  #RGB, #RRGGBB, and X color names are supported.
   , _normalBGColor :: Color
-    -- -nf color  defines the normal foreground color.
+    -- | -nf color  defines the normal foreground color.
   , _normalFGColor :: Color
-    -- -sb color  defines the selected background color.
+    -- | -sb color  defines the selected background color.
   , _selectedBGColor :: Color
-    -- -sf color  defines the selected foreground color.
+    -- | -sf color  defines the selected foreground color.
   , _selectedFGColor :: Color
-    -- -uc color  defines the underline color.
+    -- | -uc color  defines the underline color.
   , _underlineColor :: Color
-    -- -hist <histfile>  the file to use for history
+    -- | -hist <histfile>  the file to use for history
   , _historyFile :: FilePath
-    -- -v     prints version information to stdout, then exits.
+    -- | -v     prints version information to stdout, then exits.
   , _printVersionAndExit :: Bool
   }
 
@@ -210,5 +225,25 @@ configToArgs (Config{..}) = concat $ concat
   , [ [ "-hist", show _historyFile             ] | _historyFile /= "" ]
   , [ [ "-v"                                   ] | _printVersionAndExit ]
   ]
+
+-- | Multiple representations for colors.
+--
+-- For example, green can be defined as
+--
+-- > green1 = HexColor 0x00FF00
+-- > green2 = RGBColor 0 255 0
+-- > green3 = RGBColorF 0 1 0
+data Color
+  = HexColor Int
+  | RGBColor Int Int Int
+  | RGBColorF Float Float Float
+  deriving (Eq, Ord, Read, Show)
+
+showColorAsHex :: Color → String
+showColorAsHex (HexColor i) = showHex i ""
+showColorAsHex (RGBColor r g b) = showColorAsHex $ HexColor $ r*256*256 + g*256 + b
+showColorAsHex (RGBColorF r g b) = showColorAsHex $ RGBColor (f r) (f g) (f b)
+  where f = floor . (* 255)
+
 
 makeLenses ''Config
