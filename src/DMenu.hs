@@ -1,10 +1,16 @@
+{-
+  TODO
+    - Add a remark, that stack exec may cause System.Process to fail finding
+      programs.
+-}
+
 {-# LANGUAGE RecordWildCards, TemplateHaskell #-}
 
 module DMenu (
     -- * Running DMenu
     DMenuT, MonadDMenu, ProcessError, ask, run, runAsk, select, runSelect, repl,
-    -- * Configuration
-    Config(..),
+    -- * Command Line Options
+    CmdOpts(..),
     -- ** Lenses
     binaryPath,
     displayAtBottom,
@@ -48,15 +54,16 @@ import Control.Lens
 import Data.Maybe
 import System.Exit
 import System.Process
+import System.IO
 import Numeric (showHex)
 
 -- | A state monad transformer in which the command line options of @dmenu@ can
--- be configured.
-type DMenuT = StateT Config
+-- be cmdOptsured.
+type DMenuT = StateT CmdOpts
 
 -- | The @MonadIO@ constraint additionally allows to spawn processes with
 -- @System.Process@ in between.
-type MonadDMenu m = (MonadIO m, MonadState Config m)
+type MonadDMenu m = (MonadIO m, MonadState CmdOpts m)
 
 -- | When a spawned process fails, this type is used to represent the exit code
 -- and @stderr@ output.
@@ -71,35 +78,30 @@ ask entries = do
   cfg ← get
   liftIO $ do
     (exitCode, sOut, sErr) ← readCreateProcessWithExitCode
-      (proc (_binaryPath cfg) (configToArgs cfg))
+      (proc (_binaryPath cfg) (cmdOptsToArgs cfg))
       (unlines entries)
     unless (null sErr) $ do
       putStrLn $ "Error: " ++ sErr
       putStrLn $ "Binary: " ++ show (_binaryPath cfg)
-      putStrLn $ "Args: " ++ show (configToArgs cfg)
+      putStrLn $ "Args: " ++ show (cmdOptsToArgs cfg)
       putStrLn $ "Entries: " ++ show entries
     pure $ case exitCode of
       ExitSuccess → Right $ lines sOut
       ExitFailure i → Left (i, sErr)
 
--- readCreateCommandWithExitCode :: String → String → IO (ExistCode, String, String)
--- readCreateCommandWithExitCode cmd sIn = do
---   procHandle ← spawnCommand cmd
---   exitCode ← waitForProcess procHandle
-
--- | Run a @StateT Config m a@ action using an empty set of command line options as initial state. For example
+-- | Run a @StateT CmdOpts m a@ action using an empty set of command line options as initial state. For example
 --
 -- > import qualified DMenu
 -- >
 -- > main :: IO ()
--- > main = print =<< DMenu.run (do config; DMenu.ask ["A","B","C"])
+-- > main = print =<< DMenu.run (do cmdOpts; DMenu.ask ["A","B","C"])
 -- >
--- > config :: DMenu.MonadDMenu m => m ()
--- > config = do
+-- > cmdOpts :: DMenu.MonadDMenu m => m ()
+-- > cmdOpts = do
 -- >   DMenu.numLines .= 10
 -- >   DMenu.prompt   .= "run"
 run :: MonadIO m => DMenuT m a → m a
-run = flip evalStateT defConfig
+run = flip evalStateT defCmdOpts
 
 -- | Convenience function combining @run@ and @ask@.
 --
@@ -108,10 +110,10 @@ run = flip evalStateT defConfig
 -- > import qualified DMenu
 -- >
 -- > main :: IO ()
--- > main = print =<< DMenu.runAsk config ["A","B","C"]
+-- > main = print =<< DMenu.runAsk cmdOpts ["A","B","C"]
 -- >
--- > config :: DMenu.MonadDMenu m => m ()
--- > config = do
+-- > cmdOpts :: DMenu.MonadDMenu m => m ()
+-- > cmdOpts = do
 -- >   DMenu.numLines .= 10
 -- >   DMenu.prompt   .= "run"
 runAsk :: MonadIO m => DMenuT m () → [String] → m (Either ProcessError [String])
@@ -131,10 +133,10 @@ select f xs = fmap (fmap (fromJust . flip lookup m)) <$> ask (map f xs)
 -- > import qualified DMenu
 -- >
 -- > main :: IO ()
--- > main = print =<< DMenu.runSelect config show [1..10::Int]
+-- > main = print =<< DMenu.runSelect cmdOpts show [1..10::Int]
 -- >
--- > config :: DMenu.MonadDMenu m => m ()
--- > config = do
+-- > cmdOpts :: DMenu.MonadDMenu m => m ()
+-- > cmdOpts = do
 -- >   DMenu.numLines .= 10
 -- >   DMenu.prompt   .= "run"
 runSelect :: MonadIO m => DMenuT m () → (a → String) → [a] → m (Either ProcessError [a])
@@ -145,7 +147,7 @@ runSelect m0 f xs = run $ m0 >> select f xs
 -- > import qualified DMenu
 -- >
 -- > main :: IO ()
--- > main = DMenu.repl config ["A","B","C"] $ \case
+-- > main = DMenu.repl cmdOpts ["A","B","C"] $ \case
 -- >   Left _pe → pure Nothing
 -- >   Right ss → do
 -- >     print ss
@@ -160,7 +162,7 @@ repl m0 ss0 f = run $ m0 >> go (Right ss0) where
 
 -- | Contains the binary path and command line options of dmenu.
 -- The option descriptions are copied from the dmenu @man@ page.
-data Config = Config
+data CmdOpts = CmdOpts
   { -- | Path to the the dmenu executable file.
     _binaryPath :: FilePath
     -- | @-b@; dmenu appears at the bottom of the screen.
@@ -181,7 +183,7 @@ data Config = Config
   , _maskInputWithStar :: Bool
     -- | @-noinput@; dmenu ignores input from stdin (equivalent to: echo | dmenu).
   , _ignoreStdin :: Bool
-    -- | @-s screen@; dmenu apears on the specified screen number. Number given corespondes to screen number in X configuration.
+    -- | @-s screen@; dmenu apears on the specified screen number. Number given corespondes to screen number in X cmdOptsuration.
   , _screenIx :: Int
     -- | @-name name@; defines window name for dmenu. Defaults to "dmenu".
   , _windowName :: String
@@ -225,8 +227,8 @@ data Config = Config
   , _printVersionAndExit :: Bool
   }
 
-defConfig :: Config
-defConfig = Config
+defCmdOpts :: CmdOpts
+defCmdOpts = CmdOpts
   { _binaryPath = "dmenu"
   , _displayAtBottom = False
   , _displayNoItemsIfEmpty = False
@@ -260,8 +262,8 @@ defConfig = Config
   , _printVersionAndExit = False
   }
 
-configToArgs :: Config → [String]
-configToArgs (Config{..}) = concat $ concat
+cmdOptsToArgs :: CmdOpts → [String]
+cmdOptsToArgs (CmdOpts{..}) = concat $ concat
   [ [ [ "-b"                                   ] | _displayAtBottom ]
   , [ [ "-q"                                   ] | _displayNoItemsIfEmpty ]
   , [ [ "-f"                                   ] | _grabKeyboardBeforeStdin ]
@@ -314,4 +316,4 @@ showColorAsHex (RGBColorF r g b) = showColorAsHex $ RGBColor (f r) (f g) (f b)
   where f = floor . (* 255)
 
 
-makeLenses ''Config
+makeLenses ''CmdOpts
