@@ -1,5 +1,5 @@
-{ mkDerivation, base, containers, directory, Earley, lens, mtl
-, process, stdenv, transformers
+{ mkDerivation, base, containers, directory, Earley, lens, libmpd
+, mtl, process, stdenv, transformers
 }:
 mkDerivation {
   pname = "dmenu";
@@ -11,7 +11,8 @@ mkDerivation {
     base containers directory Earley lens mtl process transformers
   ];
   executableHaskellDepends = [
-    base containers directory Earley lens mtl process transformers
+    base containers directory Earley lens libmpd mtl process
+    transformers
   ];
   homepage = "https://github.com/githubuser/system-fc#readme";
   description = "Simple project template from stack";
