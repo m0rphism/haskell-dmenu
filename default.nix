@@ -8,7 +8,7 @@ mkDerivation {
   isLibrary = true;
   isExecutable = true;
   libraryHaskellDepends = [
-    base containers Earley lens mtl process transformers
+    base containers directory Earley lens mtl process transformers
   ];
   executableHaskellDepends = [
     base containers directory Earley lens mtl process transformers

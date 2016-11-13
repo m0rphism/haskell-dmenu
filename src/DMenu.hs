@@ -50,11 +50,13 @@ module DMenu (
     (.=),
   ) where
 
+import Control.Exception
 import Control.Monad.State.Strict
 import Control.Lens
 import Data.Maybe
 import System.Exit
 import System.Process
+import System.Directory
 import System.IO
 import Numeric (showHex)
 
@@ -70,96 +72,24 @@ type MonadDMenu m = (MonadIO m, MonadState CmdOpts m)
 -- and @stderr@ output.
 type ProcessError = (Int, String)
 
--- | Run DMenu to let the user choose a sub-list of @String@s.
+-- | Multiple representations for colors.
 --
--- The exit code in the @ProcessError@ is @1@ if the user cancels the selection,
--- e.g. by pressing the escape key.
-ask :: MonadDMenu m => [String] → m (Either ProcessError [String])
-ask entries = do
-  cfg ← get
-  liftIO $ do
-    (exitCode, sOut, sErr) ← readCreateProcessWithExitCode
-      (proc (_binaryPath cfg) (cmdOptsToArgs cfg))
-      (unlines entries)
-    unless (null sErr) $ do
-      putStrLn $ "Error: " ++ sErr
-      putStrLn $ "Binary: " ++ show (_binaryPath cfg)
-      putStrLn $ "Args: " ++ show (cmdOptsToArgs cfg)
-      putStrLn $ "Entries: " ++ show entries
-    pure $ case exitCode of
-      ExitSuccess → Right $ lines sOut
-      ExitFailure i → Left (i, sErr)
+-- For example, green can be defined as
+--
+-- > green1 = HexColor 0x00FF00
+-- > green2 = RGBColor 0 255 0
+-- > green3 = RGBColorF 0 1 0
+data Color
+  = HexColor Int
+  | RGBColor Int Int Int
+  | RGBColorF Float Float Float
+  deriving (Eq, Ord, Read, Show)
 
--- | Run a @StateT CmdOpts m a@ action using an empty set of command line options as initial state. For example
---
--- > import qualified DMenu
--- >
--- > main :: IO ()
--- > main = print =<< DMenu.run (do cmdOpts; DMenu.ask ["A","B","C"])
--- >
--- > cmdOpts :: DMenu.MonadDMenu m => m ()
--- > cmdOpts = do
--- >   DMenu.numLines .= 10
--- >   DMenu.prompt   .= "run"
-run :: MonadIO m => DMenuT m a → m a
-run = flip evalStateT defCmdOpts
-
--- | Convenience function combining @run@ and @ask@.
---
--- The following example is equivalent to the example for @run@:
---
--- > import qualified DMenu
--- >
--- > main :: IO ()
--- > main = print =<< DMenu.runAsk cmdOpts ["A","B","C"]
--- >
--- > cmdOpts :: DMenu.MonadDMenu m => m ()
--- > cmdOpts = do
--- >   DMenu.numLines .= 10
--- >   DMenu.prompt   .= "run"
-runAsk :: MonadIO m => DMenuT m () → [String] → m (Either ProcessError [String])
-runAsk m0 entries = run $ m0 >> ask entries
-
--- | Same as @ask@, but allows the user to select from a list of arbitrary
--- elements @xs@, which have a @String@ representation @f@.
-select :: MonadDMenu m => (a → String) → [a] → m (Either ProcessError [a])
-select f xs = fmap (fmap (fromJust . flip lookup m)) <$> ask (map f xs)
-  where m = [ (f x, x) | x ← xs ]
-
--- | Same as @runAsk@, but allows the user to select from a list of arbitrary
--- elements @xs@, which have a @String@ representation @f@.
---
--- For example
---
--- > import qualified DMenu
--- >
--- > main :: IO ()
--- > main = print =<< DMenu.runSelect cmdOpts show [1..10::Int]
--- >
--- > cmdOpts :: DMenu.MonadDMenu m => m ()
--- > cmdOpts = do
--- >   DMenu.numLines .= 10
--- >   DMenu.prompt   .= "run"
-runSelect :: MonadIO m => DMenuT m () → (a → String) → [a] → m (Either ProcessError [a])
-runSelect m0 f xs = run $ m0 >> select f xs
-
--- | Run a repl. For example
---
--- > import qualified DMenu
--- >
--- > main :: IO ()
--- > main = DMenu.repl cmdOpts ["A","B","C"] $ \case
--- >   Left _pe → pure Nothing
--- >   Right ss → do
--- >     print ss
--- >     pure $ Just $ map (head ss ++ ) ["1","2","3"]
-repl :: MonadIO m => DMenuT m a → [String] → (Either ProcessError [String] → m (Maybe [String])) → m ()
-repl m0 ss0 f = run $ m0 >> go (Right ss0) where
-  go ess = do
-    mss ← lift $ f ess
-    forM_ mss $ \ss → do
-      ess' ← ask ss
-      go ess'
+showColorAsHex :: Color → String
+showColorAsHex (HexColor i) = showHex i ""
+showColorAsHex (RGBColor r g b) = showColorAsHex $ HexColor $ r*256*256 + g*256 + b
+showColorAsHex (RGBColorF r g b) = showColorAsHex $ RGBColor (f r) (f g) (f b)
+  where f = floor . (* 255)
 
 -- | Contains the binary path and command line options of dmenu.
 -- The option descriptions are copied from the dmenu @man@ page.
@@ -227,6 +157,109 @@ data CmdOpts = CmdOpts
     -- | @-v@; prints version information to stdout, then exits.
   , _printVersionAndExit :: Bool
   }
+
+makeLenses ''CmdOpts
+
+-- | Run DMenu to let the user choose a sub-list of @String@s.
+--
+-- The exit code in the @ProcessError@ is @1@ if the user cancels the selection,
+-- e.g. by pressing the escape key.
+ask :: MonadDMenu m => [String] → m (Either ProcessError [String])
+ask entries = do
+  cfg ← get
+  liftIO $ do
+    (exitCode, sOut, sErr) ← readCreateProcessWithExitCode
+      (proc (_binaryPath cfg) (cmdOptsToArgs cfg))
+      (unlines entries)
+    unless (null sErr) $ do
+      putStrLn $ "Error: " ++ sErr
+      putStrLn $ "Binary: " ++ show (_binaryPath cfg)
+      putStrLn $ "Args: " ++ show (cmdOptsToArgs cfg)
+      putStrLn $ "Entries: " ++ show entries
+    pure $ case exitCode of
+      ExitSuccess → Right $ lines sOut
+      ExitFailure i → Left (i, sErr)
+
+-- | Run a @StateT CmdOpts m a@ action using an empty set of command line options as initial state. For example
+--
+-- > import qualified DMenu
+-- >
+-- > main :: IO ()
+-- > main = print =<< DMenu.run (do cmdOpts; DMenu.ask ["A","B","C"])
+-- >
+-- > cmdOpts :: DMenu.MonadDMenu m => m ()
+-- > cmdOpts = do
+-- >   DMenu.numLines .= 10
+-- >   DMenu.prompt   .= "run"
+run :: MonadIO m => DMenuT m a → m a
+run ma = evalStateT ma =<< readConfigOrDef =<< getDefConfigPath
+
+getDefConfigPath :: MonadIO m => m FilePath
+getDefConfigPath = (++"/.haskell-dmenu.conf") <$> liftIO getHomeDirectory
+
+-- | Convenience function combining @run@ and @ask@.
+--
+-- The following example is equivalent to the example for @run@:
+--
+-- > import qualified DMenu
+-- >
+-- > main :: IO ()
+-- > main = print =<< DMenu.runAsk cmdOpts ["A","B","C"]
+-- >
+-- > cmdOpts :: DMenu.MonadDMenu m => m ()
+-- > cmdOpts = do
+-- >   DMenu.numLines .= 10
+-- >   DMenu.prompt   .= "run"
+runAsk :: MonadIO m => DMenuT m () → [String] → m (Either ProcessError [String])
+runAsk m0 entries = run $ m0 >> ask entries
+
+-- | Same as @ask@, but allows the user to select from a list of arbitrary
+-- elements @xs@, which have a @String@ representation @f@.
+select :: MonadDMenu m => (a → String) → [a] → m (Either ProcessError [a])
+select f xs = fmap (fmap (fromJust . flip lookup m)) <$> ask (map f xs)
+  where m = [ (f x, x) | x ← xs ]
+
+-- | Same as @runAsk@, but allows the user to select from a list of arbitrary
+-- elements @xs@, which have a @String@ representation @f@.
+--
+-- For example
+--
+-- > import qualified DMenu
+-- >
+-- > main :: IO ()
+-- > main = print =<< DMenu.runSelect cmdOpts show [1..10::Int]
+-- >
+-- > cmdOpts :: DMenu.MonadDMenu m => m ()
+-- > cmdOpts = do
+-- >   DMenu.numLines .= 10
+-- >   DMenu.prompt   .= "run"
+runSelect :: MonadIO m => DMenuT m () → (a → String) → [a] → m (Either ProcessError [a])
+runSelect m0 f xs = run $ m0 >> select f xs
+
+-- | Run a repl. For example
+--
+-- > import qualified DMenu
+-- >
+-- > main :: IO ()
+-- > main = DMenu.repl cmdOpts ["A","B","C"] $ \case
+-- >   Left _pe → pure Nothing
+-- >   Right ss → do
+-- >     print ss
+-- >     pure $ Just $ map (head ss ++ ) ["1","2","3"]
+repl :: MonadIO m => DMenuT m a → [String] → (Either ProcessError [String] → m (Maybe [String])) → m ()
+repl m0 ss0 f = run $ m0 >> go (Right ss0) where
+  go ess = do
+    mss ← lift $ f ess
+    forM_ mss $ \ss → do
+      ess' ← ask ss
+      go ess'
+
+
+splitFirstWord :: String → (String, String)
+splitFirstWord = go "" where
+  go s []                           = (s, [])
+  go s (c:cs) | c `elem` [' ','\t'] = (s, dropWhile (`elem` [' ','\t']) cs)
+              | otherwise           = go (s++[c]) cs
 
 defCmdOpts :: CmdOpts
 defCmdOpts = CmdOpts
@@ -297,24 +330,86 @@ cmdOptsToArgs (CmdOpts{..}) = concat $ concat
   , [ [ "-v"                                   ] | _printVersionAndExit ]
   ]
 
--- | Multiple representations for colors.
---
--- For example, green can be defined as
---
--- > green1 = HexColor 0x00FF00
--- > green2 = RGBColor 0 255 0
--- > green3 = RGBColorF 0 1 0
-data Color
-  = HexColor Int
-  | RGBColor Int Int Int
-  | RGBColorF Float Float Float
-  deriving (Eq, Ord, Read, Show)
 
-showColorAsHex :: Color → String
-showColorAsHex (HexColor i) = showHex i ""
-showColorAsHex (RGBColor r g b) = showColorAsHex $ HexColor $ r*256*256 + g*256 + b
-showColorAsHex (RGBColorF r g b) = showColorAsHex $ RGBColor (f r) (f g) (f b)
-  where f = floor . (* 255)
+readFileMay :: MonadIO m => FilePath → m (Maybe String)
+readFileMay path = liftIO $
+  (Just <$> readFile path) `catch` (\(_ :: SomeException) → pure Nothing)
 
+readConfigOrDef :: MonadIO m => FilePath → m CmdOpts
+readConfigOrDef = fmap f . readFileMay where
+  f = \case
+    Nothing → defCmdOpts
+    Just content → parseCmdOpts content
 
-makeLenses ''CmdOpts
+parseCmdOpts :: String → CmdOpts
+parseCmdOpts = foldl f defCmdOpts . map splitFirstWord . lines where
+  f :: CmdOpts → (String, String) → CmdOpts
+  f opts (cmd, args) = opts & case cmd of
+    "binaryPath"              → binaryPath              .~ args
+    "displayAtBottom"         → displayAtBottom         .~ True
+    "displayNoItemsIfEmpty"   → displayNoItemsIfEmpty   .~ True
+    "grabKeyboardBeforeStdin" → grabKeyboardBeforeStdin .~ True
+    "filterMode"              → filterMode              .~ True
+    "caseInsensitive"         → caseInsensitive         .~ True
+    "fuzzyMatching"           → fuzzyMatching           .~ True
+    "tokenMatching"           → tokenMatching           .~ True
+    "maskInputWithStar"       → maskInputWithStar       .~ True
+    "ignoreStdin"             → ignoreStdin             .~ True
+    "screenIx"                → screenIx                .~ read args
+    "windowName"              → windowName              .~ args
+    "windowClass"             → windowClass             .~ args
+    "windowOpacity"           → windowOpacity           .~ read args
+    "windowDimOpacity"        → windowDimOpacity        .~ read args
+    "windowDimColor"          → windowDimColor          .~ read args
+    "numLines"                → numLines                .~ read args
+    "heightInPixels"          → heightInPixels          .~ read args
+    "underlineHeightInPixels" → underlineHeightInPixels .~ read args
+    "prompt"                  → prompt                  .~ args
+    "font"                    → font                    .~ args
+    "windowOffsetX"           → windowOffsetX           .~ read args
+    "windowOffsetY"           → windowOffsetY           .~ read args
+    "width"                   → width                   .~ read args
+    "normalBGColor"           → normalBGColor           .~ read args
+    "normalFGColor"           → normalFGColor           .~ read args
+    "selectedBGColor"         → selectedBGColor         .~ read args
+    "selectedFGColor"         → selectedFGColor         .~ read args
+    "underlineColor"          → underlineColor          .~ read args
+    "historyFile"             → historyFile             .~ args
+    "printVersionAndExit"     → printVersionAndExit     .~ True
+    ""                        → id
+    _                         → error $ "Invalid command found when parsing dmenu config file: " ++ cmd
+
+printCmdOpts :: CmdOpts → String
+printCmdOpts CmdOpts{..} = unlines $ concat
+  [ [ "binaryPath " ++ _binaryPath                                | _binaryPath /= "" ]
+  , [ "displayAtBottom"                                           | _displayAtBottom ]
+  , [ "displayNoItemsIfEmpty"                                     | _displayNoItemsIfEmpty ]
+  , [ "grabKeyboardBeforeStdin"                                   | _grabKeyboardBeforeStdin ]
+  , [ "filterMode"                                                | _filterMode ]
+  , [ "caseInsensitive"                                           | _caseInsensitive ]
+  , [ "fuzzyMatching"                                             | _fuzzyMatching ]
+  , [ "tokenMatching"                                             | _tokenMatching ]
+  , [ "maskInputWithStar"                                         | _maskInputWithStar ]
+  , [ "ignoreStdin"                                               | _ignoreStdin ]
+  , [ "screenIx " ++ show _screenIx                               | _screenIx /= (-1) ]
+  , [ "windowName " ++ _windowName                                | _windowName /= "" ]
+  , [ "windowClass " ++ _windowClass                              | _windowClass /= "" ]
+  , [ "windowOpacity " ++ show _windowOpacity                     | _windowOpacity /= (-1) ]
+  , [ "windowDimOpacity " ++ show _windowDimOpacity               | _windowDimOpacity /= (-1) ]
+  , [ "windowDimColor " ++ show _windowDimColor                   | _windowDimColor /= HexColor (-1) ]
+  , [ "numLines " ++ show _numLines                               | _numLines /= (-1) ]
+  , [ "heightInPixels " ++ show _heightInPixels                   | _heightInPixels /= (-1) ]
+  , [ "underlineHeightInPixels " ++ show _underlineHeightInPixels | _underlineHeightInPixels /= (-1) ]
+  , [ "prompt " ++ show _prompt                                   | _prompt /= "" ]
+  , [ "font " ++ show _font                                       | _font /= "" ]
+  , [ "windowOffsetX " ++ show _windowOffsetX                     | _windowOffsetX /= (-1) ]
+  , [ "windowOffsetY " ++ show _windowOffsetY                     | _windowOffsetY /= (-1) ]
+  , [ "width " ++ show _width                                     | _width /= (-1) ]
+  , [ "normalBGColor "   ++ show _normalBGColor                   | _normalBGColor /= HexColor (-1) ]
+  , [ "normalFGColor "   ++ show _normalFGColor                   | _normalFGColor /= HexColor (-1) ]
+  , [ "selectedBGColor " ++ show _selectedBGColor                 | _selectedBGColor /= HexColor (-1) ]
+  , [ "selectedFGColor " ++ show _selectedFGColor                 | _selectedFGColor /= HexColor (-1) ]
+  , [ "underlineColor "  ++ show _underlineColor                  | _underlineColor /= HexColor (-1) ]
+  , [ "historyFile " ++ show _historyFile                         | _historyFile /= "" ]
+  , [ "printVersionAndExit"                                       | _printVersionAndExit ]
+  ]

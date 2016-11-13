@@ -8,13 +8,6 @@ import Data.Maybe
 
 import qualified DMenu
 
-cmdOpts :: DMenu.MonadDMenu m => m ()
-cmdOpts = do
-  DMenu.numLines        .= 10
-  DMenu.font            .= "FiraMono:size=11"
-  DMenu.prompt          .= "run"
-  DMenu.caseInsensitive .= True
-
 sepBy :: String → Char → [String]
 sepBy s c = go "" s where
   go s' = \case
@@ -32,6 +25,6 @@ main :: IO ()
 main = do
   paths ← getPaths
   progs ← concat <$> forM paths listDirectoryDef
-  DMenu.runAsk cmdOpts progs >>= \case
+  DMenu.runAsk (DMenu.prompt .= "run") progs >>= \case
     Right (prog:_) → callProcess prog []
     _              → pure ()

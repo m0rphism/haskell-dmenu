@@ -11,12 +11,6 @@ import Data.List (isPrefixOf, sort)
 
 import qualified DMenu
 
-cmdOpts :: DMenu.MonadDMenu m => m ()
-cmdOpts = do
-  DMenu.numLines        .= 10
-  DMenu.font            .= "FiraMono:size=11"
-  DMenu.caseInsensitive .= True
-
 getDevs :: MonadIO m => m [String]
 getDevs = liftIO $ listDirectoryDef "/dev"
 
@@ -93,12 +87,12 @@ main = getArgs >>= \case
     devInfos ← getPartitionInfos
     let devInfos' = map (fromMaybe "" . flip lookup devInfos) devs
     let devs' = zip devs $ zipWith (\x y → x++"  "++y) (fillWithSP devs) (fillWithSPR devInfos')
-    DMenu.runSelect (do cmdOpts; DMenu.prompt .= "mount") snd devs' >>= \case
+    DMenu.runSelect (DMenu.prompt .= "mount") snd devs' >>= \case
       Right ((dev,_):_) | not (null dev) → callProcess "pmount" [dev]
       _             → pure ()
   ["-u"] → do
     devs ← filterWithPrefixes devPathPrefixesU <$> getMountedDevs
-    DMenu.runAsk (do cmdOpts; DMenu.prompt .= "umount") devs >>= \case
+    DMenu.runAsk (DMenu.prompt .= "umount") devs >>= \case
       Right (dev:_) | not (null dev) → callProcess "pumount" [dev]
       _             → pure ()
   _ → do
