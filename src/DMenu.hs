@@ -2,9 +2,8 @@
   TODO
     - Add a remark, that stack exec may cause System.Process to fail finding
       programs, and this can be circumvented by specifying an absolute path.
-    - Support for a .dmenurc file.
-    - apps:
-      - select config file to edit, ask for sudo pw for root configs in a secure way.
+    - Add documentation for .haskell-dmenu.conf
+    - Add support for regular command line syntax config and/or env variable
 -}
 
 module DMenu (
