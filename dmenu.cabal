@@ -53,6 +53,10 @@ library
   ghc-options: -Wall -threaded -O2 -fno-warn-partial-type-signatures -fdefer-type-errors
   exposed-modules:
     DMenu
+  other-modules:
+    DMenu.Color
+    DMenu.Options
+    DMenu.Run
 
 executable example1
   hs-source-dirs:      examples
