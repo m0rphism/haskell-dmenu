@@ -38,11 +38,6 @@ ask entries = do
     (exitCode, sOut, sErr) ← readCreateProcessWithExitCode
       (proc (_binaryPath cfg) (cmdOptsToArgs cfg))
       (unlines entries)
-    unless (null sErr) $ do
-      putStrLn $ "Error: " ++ sErr
-      putStrLn $ "Binary: " ++ show (_binaryPath cfg)
-      putStrLn $ "Args: " ++ show (cmdOptsToArgs cfg)
-      putStrLn $ "Entries: " ++ show entries
     pure $ case exitCode of
       ExitSuccess → Right $ lines sOut
       ExitFailure i → Left (i, sErr)
