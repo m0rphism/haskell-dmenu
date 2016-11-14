@@ -29,7 +29,7 @@ data Options = Options
   , _maskInputWithStar :: Bool
     -- | @-noinput@; dmenu ignores input from stdin (equivalent to: echo | dmenu).
   , _ignoreStdin :: Bool
-    -- | @-s screen@; dmenu apears on the specified screen number. Number given corespondes to screen number in X cmdOptsuration.
+    -- | @-s screen@; dmenu apears on the specified screen number. Number given corespondes to screen number in X optionsuration.
   , _screenIx :: Int
     -- | @-name name@; defines window name for dmenu. Defaults to "dmenu".
   , _windowName :: String
@@ -110,8 +110,8 @@ defOptions = Options
   , _printVersionAndExit = False
   }
 
-cmdOptsToArgs :: Options → [String]
-cmdOptsToArgs (Options{..}) = concat $ concat
+optionsToArgs :: Options → [String]
+optionsToArgs (Options{..}) = concat $ concat
   [ [ [ "-b"                                   ] | _displayAtBottom ]
   , [ [ "-q"                                   ] | _displayNoItemsIfEmpty ]
   , [ [ "-f"                                   ] | _grabKeyboardBeforeStdin ]

@@ -12,7 +12,7 @@ import System.Directory
 import DMenu.Options
 
 -- | A state monad transformer in which the command line options of @dmenu@ can
--- be cmdOptsured.
+-- be configured.
 type DMenuT = StateT Options
 
 -- | The @MonadIO@ constraint additionally allows to spawn processes with
@@ -32,7 +32,7 @@ ask entries = do
   cfg ← get
   liftIO $ do
     (exitCode, sOut, sErr) ← readCreateProcessWithExitCode
-      (proc (_binaryPath cfg) (cmdOptsToArgs cfg))
+      (proc (_binaryPath cfg) (optionsToArgs cfg))
       (unlines entries)
     pure $ case exitCode of
       ExitSuccess → Right $ lines sOut
@@ -42,19 +42,18 @@ ask entries = do
 -- config file or an empty set of options as initial state.
 --
 -- The config file is located at @~/.haskell-dmenu.conf@.
--- For an example see te @haskell-dmenu.conf@ file in the git repository.
+-- For an example see the @haskell-dmenu.conf@ file in the git repository.
 --
 -- For example
 --
 -- > import qualified DMenu
 -- >
 -- > main :: IO ()
--- > main = print =<< DMenu.run (do cmdOpts; DMenu.ask ["A","B","C"])
--- >
--- > cmdOpts :: DMenu.MonadDMenu m => m ()
--- > cmdOpts = do
+-- > main = DMenu.run $ do
 -- >   DMenu.numLines .= 10
 -- >   DMenu.prompt   .= "run"
+-- >   sel ← DMenu.ask ["A","B","C"]
+-- >   liftIO $ print sel
 run :: MonadIO m => DMenuT m a → m a
 run ma = evalStateT ma =<< readConfigOrDef =<< getDefConfigPath
 
@@ -68,10 +67,10 @@ getDefConfigPath = (++"/.haskell-dmenu.conf") <$> liftIO getHomeDirectory
 -- > import qualified DMenu
 -- >
 -- > main :: IO ()
--- > main = print =<< DMenu.runAsk cmdOpts ["A","B","C"]
+-- > main = print =<< DMenu.runAsk setOptions ["A","B","C"]
 -- >
--- > cmdOpts :: DMenu.MonadDMenu m => m ()
--- > cmdOpts = do
+-- > setOptions :: DMenu.MonadDMenu m => m ()
+-- > setOptions = do
 -- >   DMenu.numLines .= 10
 -- >   DMenu.prompt   .= "run"
 runAsk :: MonadIO m => DMenuT m () → [String] → m (Either ProcessError [String])
@@ -91,10 +90,10 @@ select f xs = fmap (fmap (fromJust . flip lookup m)) <$> ask (map f xs)
 -- > import qualified DMenu
 -- >
 -- > main :: IO ()
--- > main = print =<< DMenu.runSelect cmdOpts show [1..10::Int]
+-- > main = print =<< DMenu.runSelect setOptions show [1..10::Int]
 -- >
--- > cmdOpts :: DMenu.MonadDMenu m => m ()
--- > cmdOpts = do
+-- > setOptions :: DMenu.MonadDMenu m => m ()
+-- > setOptions = do
 -- >   DMenu.numLines .= 10
 -- >   DMenu.prompt   .= "run"
 runSelect :: MonadIO m => DMenuT m () → (a → String) → [a] → m (Either ProcessError [a])
@@ -105,7 +104,7 @@ runSelect m0 f xs = run $ m0 >> select f xs
 -- > import qualified DMenu
 -- >
 -- > main :: IO ()
--- > main = DMenu.repl cmdOpts ["A","B","C"] $ \case
+-- > main = DMenu.repl setOptions ["A","B","C"] $ \case
 -- >   Left _pe → pure Nothing
 -- >   Right ss → do
 -- >     print ss
