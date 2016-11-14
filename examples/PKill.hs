@@ -66,7 +66,7 @@ data ProcInfo = ProcInfo
 
 readProcInfo :: String → Maybe ProcInfo
 readProcInfo s = case words s of
-  [user, pid, cpu, mem, vsz, rss, tty, stat, start, time, cmd]
+  user:pid:cpu:mem:vsz:rss:tty:stat:start:time:cmdWords
     | Just pid' ← readMaybe pid
     , Just cpu' ← readMaybe cpu
     , Just mem' ← readMaybe mem
@@ -74,7 +74,9 @@ readProcInfo s = case words s of
     , Just rss' ← readMaybe rss
     → let tty' | tty == "?" = Nothing
                | otherwise = Just tty
-      in Just $ ProcInfo user pid' cpu' mem' vsz' rss' tty' stat start time cmd
+      in Just $ ProcInfo user pid' cpu' mem' vsz' rss' tty'
+                         stat start time (take 100 $ unwords cmdWords)
+                         -- FIXME: unwords . words loses whitespaces of command
   _ → Nothing
 
 showProcInfos :: [ProcInfo] → [String]
@@ -84,7 +86,7 @@ showProcInfos pis = map f pairs
   pids  = fillWithSPR $ map (show . piPid) pis
   cpus  = fillWithSPR $ map (show . piCpuUsage) pis
   mems  = fillWithSPR $ map (show . piMemoryUsage) pis
-  cmds  = fillWithSPR $ map piCommand pis
+  cmds  = fillWithSP $ map piCommand pis
   pairs = zip users $ zip pids $ zip cpus $ zip mems cmds
   f (user,(pid,(cpu,(mem,cmd)))) = concat $ intersperse "  " [ pid, user, cpu ++ "% CPU", mem ++ "% MEM", cmd ]
 
