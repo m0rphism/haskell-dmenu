@@ -11,9 +11,6 @@ import Data.List (isPrefixOf, sort, intersperse)
 import Text.Read (readMaybe)
 import GHC.Exts (sortWith)
 
--- FIXME: new `ps aux` version does not show all processes (e.g. sxiv)
--- TODO: mem and cpu sort
-
 import qualified DMenu
 
 runProc :: MonadIO m => String → [String] → String → m (Either String String)
@@ -26,29 +23,6 @@ runProc prog args sIn = liftIO $ do
 
 runProcOr :: MonadIO m => String → [String] → String → String → m String
 runProcOr prog args sIn sDef = either (const sDef) id <$> runProc prog args sIn
-
-skipNumbersAndWS :: Int → String → String
-skipNumbersAndWS = go False where
-  go _ 0 s                           = dropWhile (`elem` [' ', '\t']) $ s
-  go _ _ ""                          = ""
-  go b n (c:s) | c `elem` ['0'..'9'] = go True n s
-               | otherwise           = go False (if b then n-1 else n) s
-
--- returns list of pairs of process ids and description
-getProcs :: MonadIO m => m [(Integer, String)]
-getProcs = do
-  mUser ← liftIO $ lookupEnv "USER"
-  case mUser of
-    Nothing → pure []
-    Just user → do
-      sOut ← runProcOr "pgrep" ["-u", user, "--list-full"] "" ""
-      fmap concat $ forM (lines sOut) $ \l → do
-        let mPid :: Maybe Integer = readMaybe $ head $ words $ skipNumbersAndWS 0 l
-        case mPid of
-          Nothing → pure []
-          Just pid → do
-            let mInfo = skipNumbersAndWS 1 l
-            pure [(pid, mInfo)]
 
 data ProcInfo = ProcInfo
   { piUser        :: String
@@ -90,9 +64,8 @@ showProcInfos pis = map f pairs
   pairs = zip users $ zip pids $ zip cpus $ zip mems cmds
   f (user,(pid,(cpu,(mem,cmd)))) = concat $ intersperse "  " [ pid, user, cpu ++ "% CPU", mem ++ "% MEM", cmd ]
 
--- returns list of pairs of process ids and description
-getProcs' :: MonadIO m => m [ProcInfo]
-getProcs' = do
+getProcs :: MonadIO m => m [ProcInfo]
+getProcs = do
   sOut ← runProcOr "ps" ["aux"] "" ""
   fmap concat $ forM (drop 1 $ lines sOut) $ \l → do
     case readProcInfo l of
@@ -118,7 +91,7 @@ main = do
     ["-pid"] → pure id
     []       → pure id
     _        → putStrLn usage >> exitFailure
-  procs ← sortProcs <$> getProcs'
+  procs ← sortProcs <$> getProcs
   let procs' = zip (map piPid procs) (showProcInfos procs)
   DMenu.runSelect (DMenu.prompt .= "kill -9") snd procs' >>= \case
     Right ((pid,_):_) → callCommand $ "kill -9 " ++ show pid
