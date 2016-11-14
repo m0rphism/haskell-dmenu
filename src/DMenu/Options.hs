@@ -16,7 +16,7 @@ import DMenu.Color
 
 -- | Contains the binary path and command line options of dmenu.
 -- The option descriptions are copied from the dmenu @man@ page.
-data CmdOpts = CmdOpts
+data Options = Options
   { -- | Path to the the dmenu executable file.
     _binaryPath :: FilePath
     -- | @-b@; dmenu appears at the bottom of the screen.
@@ -81,10 +81,10 @@ data CmdOpts = CmdOpts
   , _printVersionAndExit :: Bool
   }
 
-makeLenses ''CmdOpts
+makeLenses ''Options
 
-defCmdOpts :: CmdOpts
-defCmdOpts = CmdOpts
+defOptions :: Options
+defOptions = Options
   { _binaryPath = "dmenu"
   , _displayAtBottom = False
   , _displayNoItemsIfEmpty = False
@@ -118,8 +118,8 @@ defCmdOpts = CmdOpts
   , _printVersionAndExit = False
   }
 
-cmdOptsToArgs :: CmdOpts → [String]
-cmdOptsToArgs (CmdOpts{..}) = concat $ concat
+cmdOptsToArgs :: Options → [String]
+cmdOptsToArgs (Options{..}) = concat $ concat
   [ [ [ "-b"                                   ] | _displayAtBottom ]
   , [ [ "-q"                                   ] | _displayNoItemsIfEmpty ]
   , [ [ "-f"                                   ] | _grabKeyboardBeforeStdin ]
@@ -152,9 +152,9 @@ cmdOptsToArgs (CmdOpts{..}) = concat $ concat
   , [ [ "-v"                                   ] | _printVersionAndExit ]
   ]
 
-parseCmdOpts :: String → CmdOpts
-parseCmdOpts = foldl f defCmdOpts . map splitFirstWord . lines where
-  f :: CmdOpts → (String, String) → CmdOpts
+parseOptions :: String → Options
+parseOptions = foldl f defOptions . map splitFirstWord . lines where
+  f :: Options → (String, String) → Options
   f opts (cmd, args) = opts & case cmd of
     "binaryPath"              → binaryPath              .~ args
     "displayAtBottom"         → displayAtBottom         .~ True
@@ -190,8 +190,8 @@ parseCmdOpts = foldl f defCmdOpts . map splitFirstWord . lines where
     ""                        → id
     _                         → error $ "Invalid command found when parsing dmenu config file: " ++ cmd
 
-printCmdOpts :: CmdOpts → String
-printCmdOpts CmdOpts{..} = unlines $ concat
+printOptions :: Options → String
+printOptions Options{..} = unlines $ concat
   [ [ "binaryPath " ++ _binaryPath                                | _binaryPath /= "" ]
   , [ "displayAtBottom"                                           | _displayAtBottom ]
   , [ "displayNoItemsIfEmpty"                                     | _displayNoItemsIfEmpty ]

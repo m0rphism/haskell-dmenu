@@ -17,11 +17,11 @@ import DMenu.Options
 
 -- | A state monad transformer in which the command line options of @dmenu@ can
 -- be cmdOptsured.
-type DMenuT = StateT CmdOpts
+type DMenuT = StateT Options
 
 -- | The @MonadIO@ constraint additionally allows to spawn processes with
 -- @System.Process@ in between.
-type MonadDMenu m = (MonadIO m, MonadState CmdOpts m)
+type MonadDMenu m = (MonadIO m, MonadState Options m)
 
 -- | When a spawned process fails, this type is used to represent the exit code
 -- and @stderr@ output.
@@ -42,7 +42,7 @@ ask entries = do
       ExitSuccess → Right $ lines sOut
       ExitFailure i → Left (i, sErr)
 
--- | Run a @StateT CmdOpts m a@ action using the command line options from the
+-- | Run a @StateT Options m a@ action using the command line options from the
 -- config file or an empty set of options as initial state.
 --
 -- The config file is located at @~/.haskell-dmenu.conf@.
@@ -133,8 +133,8 @@ readFileMay :: MonadIO m => FilePath → m (Maybe String)
 readFileMay path = liftIO $
   (Just <$> readFile path) `catch` (\(_ :: SomeException) → pure Nothing)
 
-readConfigOrDef :: MonadIO m => FilePath → m CmdOpts
+readConfigOrDef :: MonadIO m => FilePath → m Options
 readConfigOrDef = fmap f . readFileMay where
   f = \case
-    Nothing → defCmdOpts
-    Just content → parseCmdOpts content
+    Nothing → defOptions
+    Just content → parseOptions content
