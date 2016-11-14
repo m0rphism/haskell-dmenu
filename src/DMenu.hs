@@ -23,7 +23,7 @@ module DMenu (
     tokenMatching,
     maskInputWithStar,
     ignoreStdin,
-    screenIx,
+    spawnOnScreen,
     windowName,
     windowClass,
     windowOpacity,

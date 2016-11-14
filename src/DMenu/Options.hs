@@ -30,7 +30,7 @@ data Options = Options
     -- | @-noinput@; dmenu ignores input from stdin (equivalent to: echo | dmenu).
   , _ignoreStdin :: Bool
     -- | @-s screen@; dmenu apears on the specified screen number. Number given corespondes to screen number in X optionsuration.
-  , _screenIx :: Int
+  , _spawnOnScreen :: Int
     -- | @-name name@; defines window name for dmenu. Defaults to "dmenu".
   , _windowName :: String
     -- | @-class class@; defines window class for dmenu. Defaults to "Dmenu".
@@ -87,7 +87,7 @@ defOptions = Options
   , _tokenMatching = False
   , _maskInputWithStar = False
   , _ignoreStdin = False
-  , _screenIx = (-1)
+  , _spawnOnScreen = (-1)
   , _windowName = ""
   , _windowClass = ""
   , _windowOpacity = (-1)
@@ -121,7 +121,7 @@ optionsToArgs (Options{..}) = concat $ concat
   , [ [ "-t"                                   ] | _tokenMatching ]
   , [ [ "-mask"                                ] | _maskInputWithStar ]
   , [ [ "-noinput"                             ] | _ignoreStdin ]
-  , [ [ "-s", show _screenIx                   ] | _screenIx /= (-1) ]
+  , [ [ "-s", show _spawnOnScreen              ] | _spawnOnScreen /= (-1) ]
   , [ [ "-name", show _windowName              ] | _windowName /= "" ]
   , [ [ "-class", show _windowClass            ] | _windowClass /= "" ]
   , [ [ "-o", show _windowOpacity              ] | _windowOpacity /= (-1) ]
@@ -158,7 +158,7 @@ parseOptions = foldl f defOptions . map splitFirstWord . lines where
     "tokenMatching"           → tokenMatching           .~ True
     "maskInputWithStar"       → maskInputWithStar       .~ True
     "ignoreStdin"             → ignoreStdin             .~ True
-    "screenIx"                → screenIx                .~ read args
+    "spawnOnScreen"           → spawnOnScreen                .~ read args
     "windowName"              → windowName              .~ args
     "windowClass"             → windowClass             .~ args
     "windowOpacity"           → windowOpacity           .~ read args
@@ -194,7 +194,7 @@ printOptions Options{..} = unlines $ concat
   , [ "tokenMatching"                                             | _tokenMatching ]
   , [ "maskInputWithStar"                                         | _maskInputWithStar ]
   , [ "ignoreStdin"                                               | _ignoreStdin ]
-  , [ "screenIx " ++ show _screenIx                               | _screenIx /= (-1) ]
+  , [ "spawnOnScreen " ++ show _spawnOnScreen                     | _spawnOnScreen /= (-1) ]
   , [ "windowName " ++ _windowName                                | _windowName /= "" ]
   , [ "windowClass " ++ _windowClass                              | _windowClass /= "" ]
   , [ "windowOpacity " ++ show _windowOpacity                     | _windowOpacity /= (-1) ]

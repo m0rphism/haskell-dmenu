@@ -23,7 +23,8 @@ type MonadDMenu m = (MonadIO m, MonadState Options m)
 -- and @stderr@ output.
 type ProcessError = (Int, String)
 
--- | Run DMenu to let the user choose a sub-list of @String@s.
+-- | Run DMenu with the command line options from the monadic state and the list
+-- of @String@s from which the user should choose.
 --
 -- The exit code in the @ProcessError@ is @1@ if the user cancels the selection,
 -- e.g. by pressing the escape key.
@@ -62,7 +63,7 @@ getDefConfigPath = (++"/.haskell-dmenu.conf") <$> liftIO getHomeDirectory
 
 -- | Convenience function combining @run@ and @ask@.
 --
--- The following example is equivalent to the example for @run@:
+-- The following example has the same behavior as the example for @run@:
 --
 -- > import qualified DMenu
 -- >
