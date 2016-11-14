@@ -1,13 +1,10 @@
 import Control.Monad
 import Control.Monad.IO.Class
 import Control.Lens
-import System.Directory
 import System.Environment
 import System.Exit
 import System.Process
-import Control.Exception
-import Data.Maybe
-import Data.List (isPrefixOf, sort, intersperse)
+import Data.List (intersperse)
 import Text.Read (readMaybe)
 import GHC.Exts (sortWith)
 

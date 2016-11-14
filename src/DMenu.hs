@@ -11,7 +11,7 @@ module DMenu (
     -- * Running DMenu
     DMenuT, MonadDMenu, ProcessError, ask, run, runAsk, select, runSelect, repl,
     -- * Command Line Options
-    CmdOpts(..),
+    Options(..),
     -- ** Lenses
     binaryPath,
     displayAtBottom,

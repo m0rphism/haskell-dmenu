@@ -4,15 +4,11 @@ module DMenu.Run where
 
 import Control.Exception
 import Control.Monad.State.Strict
-import Control.Lens
 import Data.Maybe
 import System.Exit
 import System.Process
 import System.Directory
-import System.IO
-import Numeric (showHex)
 
-import DMenu.Color
 import DMenu.Options
 
 -- | A state monad transformer in which the command line options of @dmenu@ can
