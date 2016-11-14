@@ -87,7 +87,7 @@ main = getArgs >>= \case
     devInfos ← getPartitionInfos
     let devInfos' = map (fromMaybe "" . flip lookup devInfos) devs
     let devs' = zip devs $ zipWith (\x y → x++"  "++y) (fillWithSP devs) (fillWithSPR devInfos')
-    DMenu.runSelect (DMenu.prompt .= "mount") snd devs' >>= \case
+    DMenu.select' (DMenu.prompt .= "mount") snd devs' >>= \case
       Right ((dev,_):_) | not (null dev) → callProcess "pmount" [dev]
       _             → pure ()
   ["-u"] → do
@@ -95,7 +95,7 @@ main = getArgs >>= \case
     devInfos ← getPartitionInfos
     let devInfos' = map (fromMaybe "" . flip lookup devInfos) devs
     let devs' = zip devs $ zipWith (\x y → x++"  "++y) (fillWithSP devs) (fillWithSPR devInfos')
-    DMenu.runSelect (DMenu.prompt .= "umount") snd devs' >>= \case
+    DMenu.select' (DMenu.prompt .= "umount") snd devs' >>= \case
       Right ((dev,_):_) | not (null dev) → callProcess "pumount" [dev]
       _             → pure ()
     -- DMenu.runAsk (DMenu.prompt .= "umount") devs >>= \case

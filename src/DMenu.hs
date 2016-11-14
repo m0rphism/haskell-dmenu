@@ -9,7 +9,8 @@
 
 module DMenu (
     -- * Running DMenu
-    DMenuT, MonadDMenu, ProcessError, ask, run, runAsk, select, runSelect, repl,
+    DMenuT, MonadDMenu, ProcessError,
+    run, selectM, select, selectM', select', repl,
     -- * Command Line Options
     Options(..),
     -- ** Lenses

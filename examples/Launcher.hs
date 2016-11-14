@@ -25,6 +25,6 @@ main :: IO ()
 main = do
   paths ← getPaths
   progs ← concat <$> forM paths listDirectoryDef
-  DMenu.runAsk (DMenu.prompt .= "run") progs >>= \case
+  DMenu.select (DMenu.prompt .= "run") progs >>= \case
     Right (prog:_) → callProcess prog []
     _              → pure ()

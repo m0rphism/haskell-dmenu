@@ -90,7 +90,7 @@ main = do
     _        → putStrLn usage >> exitFailure
   procs ← sortProcs <$> getProcs
   let procs' = zip (map piPid procs) (showProcInfos procs)
-  DMenu.runSelect (DMenu.prompt .= "kill -9") snd procs' >>= \case
+  DMenu.select' (DMenu.prompt .= "kill -9") snd procs' >>= \case
     Right ((pid,_):_) → callCommand $ "kill -9 " ++ show pid
     _                 → pure ()
 

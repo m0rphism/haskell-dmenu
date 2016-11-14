@@ -39,7 +39,7 @@ main = do
   let rootEditCmd = "gksudo gvim"
 
   let files = map Left userFiles ++ map Right rootFiles
-  DMenu.runSelect (DMenu.prompt .= "edit") (either ("U  "++) ("R  "++)) files >>= \case
+  DMenu.select' (DMenu.prompt .= "edit") (either ("U  "++) ("R  "++)) files >>= \case
     Right (Left userFile :_) → callCommand $ userEditCmd ++ " " ++ userFile
     Right (Right rootFile :_) → callCommand $ rootEditCmd ++ " " ++ rootFile
     _                 → pure ()

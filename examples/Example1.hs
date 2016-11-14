@@ -9,7 +9,7 @@ cmdOpts = do
   DMenu.caseInsensitive .= True
 
 main :: IO ()
-main = print =<< DMenu.runAsk cmdOpts ["A","B","C"]
+main = print =<< DMenu.select cmdOpts ["A","B","C"]
 
 repl :: IO ()
 repl = DMenu.repl cmdOpts ["A","B","C"] $ \case
@@ -18,5 +18,5 @@ repl = DMenu.repl cmdOpts ["A","B","C"] $ \case
     print ss
     pure $ Just $ map (head ss ++ ) ["1","2","3"]
 
-runSelect:: IO ()
-runSelect = print =<< DMenu.runSelect cmdOpts show [1..10::Int]
+select':: IO ()
+select' = print =<< DMenu.select' cmdOpts show [1..10::Int]

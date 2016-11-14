@@ -23,22 +23,6 @@ type MonadDMenu m = (MonadIO m, MonadState Options m)
 -- and @stderr@ output.
 type ProcessError = (Int, String)
 
--- | Run DMenu with the command line options from the monadic state and the list
--- of @String@s from which the user should choose.
---
--- The exit code in the @ProcessError@ is @1@ if the user cancels the selection,
--- e.g. by pressing the escape key.
-ask :: MonadDMenu m => [String] → m (Either ProcessError [String])
-ask entries = do
-  cfg ← get
-  liftIO $ do
-    (exitCode, sOut, sErr) ← readCreateProcessWithExitCode
-      (proc (_binaryPath cfg) (optionsToArgs cfg))
-      (unlines entries)
-    pure $ case exitCode of
-      ExitSuccess → Right $ lines sOut
-      ExitFailure i → Left (i, sErr)
-
 -- | Run a @StateT Options m a@ action using the command line options from the
 -- config file or an empty set of options as initial state.
 --
@@ -53,7 +37,7 @@ ask entries = do
 -- > main = DMenu.run $ do
 -- >   DMenu.numLines .= 10
 -- >   DMenu.prompt   .= "run"
--- >   sel ← DMenu.ask ["A","B","C"]
+-- >   sel ← DMenu.selectM ["A","B","C"]
 -- >   liftIO $ print sel
 run :: MonadIO m => DMenuT m a → m a
 run ma = evalStateT ma =<< readConfigOrDef =<< getDefConfigPath
@@ -61,29 +45,45 @@ run ma = evalStateT ma =<< readConfigOrDef =<< getDefConfigPath
 getDefConfigPath :: MonadIO m => m FilePath
 getDefConfigPath = (++"/.haskell-dmenu.conf") <$> liftIO getHomeDirectory
 
--- | Convenience function combining @run@ and @ask@.
+-- | Run DMenu with the command line options from the monadic state and the list
+-- of @String@s from which the user should choose.
+--
+-- The exit code in the @ProcessError@ is @1@ if the user cancels the selection,
+-- e.g. by pressing the escape key.
+selectM :: MonadDMenu m => [String] → m (Either ProcessError [String])
+selectM entries = do
+  cfg ← get
+  liftIO $ do
+    (exitCode, sOut, sErr) ← readCreateProcessWithExitCode
+      (proc (_binaryPath cfg) (optionsToArgs cfg))
+      (unlines entries)
+    pure $ case exitCode of
+      ExitSuccess → Right $ lines sOut
+      ExitFailure i → Left (i, sErr)
+
+-- | Convenience function combining @run@ and @selectM@.
 --
 -- The following example has the same behavior as the example for @run@:
 --
 -- > import qualified DMenu
 -- >
 -- > main :: IO ()
--- > main = print =<< DMenu.runAsk setOptions ["A","B","C"]
+-- > main = print =<< DMenu.select setOptions ["A","B","C"]
 -- >
 -- > setOptions :: DMenu.MonadDMenu m => m ()
 -- > setOptions = do
 -- >   DMenu.numLines .= 10
 -- >   DMenu.prompt   .= "run"
-runAsk :: MonadIO m => DMenuT m () → [String] → m (Either ProcessError [String])
-runAsk m0 entries = run $ m0 >> ask entries
+select :: MonadIO m => DMenuT m () → [String] → m (Either ProcessError [String])
+select m0 entries = run $ m0 >> selectM entries
 
--- | Same as @ask@, but allows the user to select from a list of arbitrary
+-- | Same as @selectM@, but allows the user to select from a list of arbitrary
 -- elements @xs@, which have a @String@ representation @f@.
-select :: MonadDMenu m => (a → String) → [a] → m (Either ProcessError [a])
-select f xs = fmap (fmap (fromJust . flip lookup m)) <$> ask (map f xs)
+selectM' :: MonadDMenu m => (a → String) → [a] → m (Either ProcessError [a])
+selectM' f xs = fmap (fmap (fromJust . flip lookup m)) <$> selectM (map f xs)
   where m = [ (f x, x) | x ← xs ]
 
--- | Same as @runAsk@, but allows the user to select from a list of arbitrary
+-- | Same as @select@, but allows the user to select from a list of arbitrary
 -- elements @xs@, which have a @String@ representation @f@.
 --
 -- For example
@@ -91,14 +91,14 @@ select f xs = fmap (fmap (fromJust . flip lookup m)) <$> ask (map f xs)
 -- > import qualified DMenu
 -- >
 -- > main :: IO ()
--- > main = print =<< DMenu.runSelect setOptions show [1..10::Int]
+-- > main = print =<< DMenu.select' setOptions show [1..10::Int]
 -- >
 -- > setOptions :: DMenu.MonadDMenu m => m ()
 -- > setOptions = do
 -- >   DMenu.numLines .= 10
 -- >   DMenu.prompt   .= "run"
-runSelect :: MonadIO m => DMenuT m () → (a → String) → [a] → m (Either ProcessError [a])
-runSelect m0 f xs = run $ m0 >> select f xs
+select' :: MonadIO m => DMenuT m () → (a → String) → [a] → m (Either ProcessError [a])
+select' m0 f xs = run $ m0 >> selectM' f xs
 
 -- | Run a repl. For example
 --
@@ -115,7 +115,7 @@ repl m0 ss0 f = run $ m0 >> go (Right ss0) where
   go ess = do
     mss ← lift $ f ess
     forM_ mss $ \ss → do
-      ess' ← ask ss
+      ess' ← selectM ss
       go ess'
 
 
