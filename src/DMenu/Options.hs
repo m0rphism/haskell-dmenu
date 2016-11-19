@@ -8,7 +8,7 @@ import Control.Lens
 import DMenu.Color
 
 -- | Contains the binary path and command line options of dmenu.
--- The option descriptions are copied from the dmenu @man@ page.
+-- The option descriptions are copied from the @dmenu@ @man@ page.
 data Options = Options
   { -- | Path to the the dmenu executable file.
     --   Default looks for @dmenu@ in the @PATH@ enviroment variable.
@@ -41,6 +41,8 @@ data Options = Options
   , _dmenu2 :: Options2
   }
 
+-- | Contains the command line options of @dmenu2@ which are not part of
+-- @dmenu@. The option descriptions are copied from the @dmenu2@ @man@ page.
 data Options2 = Options2
   { -- | @-q@; dmenu will not show any items if the search string is empty.
     _displayNoItemsIfEmpty :: Bool
@@ -82,9 +84,26 @@ data Options2 = Options2
   , _historyFile :: FilePath
   }
 
-
 makeLenses ''Options
 makeLenses ''Options2
+
+defOptions :: Options
+defOptions = Options
+  { _binaryPath = "dmenu"
+  , _displayAtBottom = False
+  , _grabKeyboardBeforeStdin = False
+  , _caseInsensitive = False
+  , _numLines = (-1)
+  , _prompt = ""
+  , _font = ""
+  , _spawnOnMonitor = (-1)
+  , _normalBGColor = HexColor (-1)
+  , _normalFGColor = HexColor (-1)
+  , _selectedBGColor = HexColor (-1)
+  , _selectedFGColor = HexColor (-1)
+  , _printVersionAndExit = False
+  , _dmenu2 = defOptions2
+  }
 
 defOptions2 :: Options2
 defOptions2 = Options2
@@ -107,24 +126,6 @@ defOptions2 = Options2
   , _width = (-1)
   , _underlineColor = HexColor (-1)
   , _historyFile = ""
-  }
-
-defOptions :: Options
-defOptions = Options
-  { _binaryPath = "dmenu"
-  , _displayAtBottom = False
-  , _grabKeyboardBeforeStdin = False
-  , _caseInsensitive = False
-  , _numLines = (-1)
-  , _prompt = ""
-  , _font = ""
-  , _spawnOnMonitor = (-1)
-  , _normalBGColor = HexColor (-1)
-  , _normalFGColor = HexColor (-1)
-  , _selectedBGColor = HexColor (-1)
-  , _selectedFGColor = HexColor (-1)
-  , _printVersionAndExit = False
-  , _dmenu2 = defOptions2
   }
 
 optionsToArgs :: Options → [String]
