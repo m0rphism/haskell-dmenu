@@ -55,7 +55,8 @@ selectM
      -- ^ List from which the user should select.
    → m (Either ProcessError [String])
      -- ^ The selection made by the user, or a 'ProcessError', if the user
-     -- canceled.
+     -- canceled. Unless the @dmenu2@ option '_filterMode' is set, the
+     -- '[String]` contains exactly one item.
 selectM entries = do
   cfg ← get
   liftIO $ do
@@ -88,7 +89,8 @@ select
      -- ^ List from which the user should select.
    → m (Either ProcessError [String])
      -- ^ The selection made by the user, or a 'ProcessError', if the user
-     -- canceled.
+     -- canceled. Unless the @dmenu2@ option '_filterMode' is set, the
+     -- '[String]` contains exactly one item.
 select m0 entries = run $ m0 >> selectM entries
 
 -- | Same as 'selectM', but allows the user to select from a list of arbitrary
@@ -101,7 +103,8 @@ selectWithM
      -- ^ List from which the user should select.
    → m (Either ProcessError [a])
      -- ^ The selection made by the user, or a 'ProcessError', if the user
-     -- canceled.
+     -- canceled. Unless the @dmenu2@ option '_filterMode' is set, the
+     -- '[String]` contains exactly one item.
 selectWithM f xs = fmap (fmap (fromJust . flip lookup m)) <$> selectM (map f xs)
   where m = [ (f x, x) | x ← xs ]
 
@@ -130,7 +133,8 @@ selectWith
      -- ^ List from which the user should select.
    → m (Either ProcessError [a])
      -- ^ The selection made by the user, or a 'ProcessError', if the user
-     -- canceled.
+     -- canceled. Unless the @dmenu2@ option '_filterMode' is set, the
+     -- '[String]` contains exactly one item.
 selectWith m0 f xs = run $ m0 >> selectWithM f xs
 
 
