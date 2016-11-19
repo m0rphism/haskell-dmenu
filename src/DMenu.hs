@@ -1,7 +1,5 @@
 {-
   TODO
-    - Add a remark, that stack exec may cause System.Process to fail finding
-      programs, and this can be circumvented by specifying an absolute path.
     - Add documentation for .haskell-dmenu.conf
     - Add support for regular command line syntax config and/or env variable
 -}
@@ -72,9 +70,9 @@ import DMenu.Run
   <http://tools.suckless.org/dmenu/ dmenu> and
   <https://bitbucket.org/melek/dmenu2 dmenu2> command-line tools.
 
-  The @dmenu@ command line utility
+  The @dmenu@ command line tool
 
-  1.  takes @Options@ as arguments and reads a list of strings from @stdin@,
+  1.  takes command line options and reads a list of strings from @stdin@,
   2.  presents the list in a special overlay window, in which the user can select
       from the list via fuzzy matching, and
   3.  prints the selected string to @stdout@ or fails with exit code @1@ if the
@@ -97,4 +95,9 @@ import DMenu.Run
   file.
 
   The simplest way to use this library is the @select@ function.
+
+  Note for @stack@ users: When running programs using this library via
+  @stack exec@, the program may fail to find @dmenu@ in the @PATH@.
+  This problem can be solved by running the program directly without @stack@, or
+  by temporarily using an absolute path for @dmenu@ in the @binaryPath@ option.
 -}

@@ -47,12 +47,15 @@ run ma = evalStateT ma =<< readConfigOrDef =<< getDefConfigPath
 getDefConfigPath :: MonadIO m => m FilePath
 getDefConfigPath = (++"/.haskell-dmenu.conf") <$> liftIO getHomeDirectory
 
--- | Run DMenu with the command line options from the monadic state and the list
--- of @String@s from which the user should choose.
---
--- The exit code in the @ProcessError@ is @1@ if the user cancels the selection,
--- e.g. by pressing the escape key.
-selectM :: MonadDMenu m => [String] → m (Either ProcessError [String])
+-- | Run DMenu with the command line options from @m@ and a list of @String@s
+-- from which the user should choose.
+selectM
+  :: MonadDMenu m
+  => [String]
+     -- ^ List from which the user should select.
+   → m (Either ProcessError [String])
+     -- ^ The selection made by the user, or a @ProcessError@, if the user
+     -- canceled.
 selectM entries = do
   cfg ← get
   liftIO $ do
@@ -76,17 +79,34 @@ selectM entries = do
 -- > setOptions = do
 -- >   DMenu.numLines .= 10
 -- >   DMenu.prompt   .= "run"
-select :: MonadIO m => DMenuT m () → [String] → m (Either ProcessError [String])
+select
+  :: MonadIO m
+  => DMenuT m ()
+     -- ^ @State Options@ action which changes the default command line
+     -- options.
+   → [String]
+     -- ^ List from which the user should select.
+   → m (Either ProcessError [String])
+     -- ^ The selection made by the user, or a @ProcessError@, if the user
+     -- canceled.
 select m0 entries = run $ m0 >> selectM entries
 
 -- | Same as @selectM@, but allows the user to select from a list of arbitrary
--- elements @xs@, which have a @String@ representation @f@.
-selectWithM :: MonadDMenu m => (a → String) → [a] → m (Either ProcessError [a])
+-- elements, which have a @String@ representation.
+selectWithM
+  :: MonadDMenu m
+  => (a → String)
+     -- ^ How to display an @a@ in @dmenu@.
+   → [a]
+     -- ^ List from which the user should select.
+   → m (Either ProcessError [a])
+     -- ^ The selection made by the user, or a @ProcessError@, if the user
+     -- canceled.
 selectWithM f xs = fmap (fmap (fromJust . flip lookup m)) <$> selectM (map f xs)
   where m = [ (f x, x) | x ← xs ]
 
 -- | Same as @select@, but allows the user to select from a list of arbitrary
--- elements @xs@, which have a @String@ representation @f@.
+-- elements, which have a @String@ representation.
 --
 -- For example
 --
@@ -99,7 +119,18 @@ selectWithM f xs = fmap (fmap (fromJust . flip lookup m)) <$> selectM (map f xs)
 -- > setOptions = do
 -- >   DMenu.numLines .= 10
 -- >   DMenu.prompt   .= "run"
-selectWith :: MonadIO m => DMenuT m () → (a → String) → [a] → m (Either ProcessError [a])
+selectWith
+  :: MonadIO m
+  => DMenuT m ()
+     -- ^ @State Options@ action which changes the default command line
+     -- options.
+   → (a → String)
+     -- ^ How to display an @a@ in @dmenu@.
+   → [a]
+     -- ^ List from which the user should select.
+   → m (Either ProcessError [a])
+     -- ^ The selection made by the user, or a @ProcessError@, if the user
+     -- canceled.
 selectWith m0 f xs = run $ m0 >> selectWithM f xs
 
 -- | Run a repl. For example
