@@ -62,7 +62,7 @@ data Options2 = Options2
   , _maskInputWithStar :: Bool
     -- | @-noinput@; dmenu ignores input from stdin (equivalent to: @echo | dmenu@).
   , _ignoreStdin :: Bool
-    -- | @-s screen@; dmenu apears on the specified screen number. Number given corespondes to screen number in X optionsuration.
+    -- | @-s screen@; dmenu apears on the specified screen number. Number given corespondes to screen number in X configuration.
   , _spawnOnScreen :: Int
     -- | @-name name@; defines window name for dmenu. Defaults to @\"dmenu\"@.
   , _windowName :: String
