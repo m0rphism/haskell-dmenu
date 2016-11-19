@@ -8,6 +8,8 @@ description:
   Provides fuzzy selection via a GUI menu.
 homepage:
   https://github.com/m0rphism/haskell-dmenu
+bug-reports:
+  https://github.com/m0rphism/haskell-dmenu/issues
 license:
   BSD3
 license-file:
@@ -15,7 +17,7 @@ license-file:
 author:
   Hannes Saffrich
 maintainer:
-  m0rphism@zankapfel.org
+  Hannes Saffrich <m0rphism@zankapfel.org>
 copyright:
   2016 Hannes Saffrich
 category:
@@ -49,3 +51,6 @@ library
     DMenu.Options
     DMenu.Run
 
+source-repository head
+  type: git
+  location: https://github.com/m0rphism/haskell-dmenu.git
