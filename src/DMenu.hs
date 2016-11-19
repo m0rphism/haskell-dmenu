@@ -7,9 +7,13 @@
 -}
 
 module DMenu (
+    -- * Overview
+    -- $overview
+
     -- * Running DMenu
     DMenuT, MonadDMenu, ProcessError,
     run, selectM, select, selectM', select', repl,
+
     -- * Command Line Options
     Options(..),
     -- ** Lenses
@@ -26,6 +30,7 @@ module DMenu (
     selectedBGColor,
     selectedFGColor,
     printVersionAndExit,
+
     -- * Extra Options for the dmenu2 fork
     Options2(..),
     -- ** Lenses
@@ -48,8 +53,10 @@ module DMenu (
     width,
     underlineColor,
     historyFile,
+
     -- * Color
     Color(..),
+
     -- * Reexports from @lens@
     (.=),
   ) where
@@ -59,3 +66,39 @@ import Control.Lens
 import DMenu.Color
 import DMenu.Options
 import DMenu.Run
+
+{- $overview
+  This module provides complete bindings to the
+  <http://tools.suckless.org/dmenu/ dmenu> and
+  <https://bitbucket.org/melek/dmenu2 dmenu2> command-line tools.
+
+  The @dmenu@ command line utility
+
+  1.  takes @Options@ as arguments and reads a list of strings from @stdin@,
+  2.  presents the list in a special overlay window, in which the user can select
+      from the list via fuzzy matching, and
+  3.  prints the selected string to @stdout@ or fails with exit code @1@ if the
+      user hit the @ESC@ key.
+
+  @dmenu2@ is a fork of @dmenu@, which provides additional options covered in
+  the @Options2@ data type.
+
+  This library extends the functionality of dmenu, by reading a set of default
+  command line options from a configuration file if existent.
+
+
+  The following example uses this library to let the user choose between the
+  strings @"A"@, @"B"@, and @"C"@.
+
+  > import qualified DMenu
+  >
+  > main :: IO ()
+  > main = print =<< DMenu.select (pure ()) ["A","B","C"]
+
+  The simplest way to use this library is the @select@ function.
+  It takes the @dmenu@ options and a list of strings as arguments
+  and returns @IO (Either ProcessError [String])@.
+  The options are specified as a @State Options@ action, so @(pure ())@
+  leaves the @Options@ unchanged. This means that
+
+-}
