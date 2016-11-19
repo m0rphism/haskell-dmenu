@@ -6,11 +6,13 @@
 module DMenu.Run where
 
 import Control.Exception
-import Control.Monad.State.Strict
+import Control.Monad.State.Strict hiding (filterM)
+import Control.Lens
 import Data.Maybe
 import System.Exit
 import System.Process
 import System.Directory
+import Prelude hiding (filter)
 
 import DMenu.Options
 
@@ -53,10 +55,9 @@ selectM
   :: MonadDMenu m
   => [String]
      -- ^ List from which the user should select.
-   → m (Either ProcessError [String])
+   → m (Either ProcessError String)
      -- ^ The selection made by the user, or a 'ProcessError', if the user
-     -- canceled. Unless the @dmenu2@ option '_filterMode' is set, the
-     -- '[String]` contains exactly one item.
+     -- canceled.
 selectM entries = do
   cfg ← get
   liftIO $ do
@@ -64,7 +65,7 @@ selectM entries = do
       (proc (_binaryPath cfg) (optionsToArgs cfg))
       (unlines entries)
     pure $ case exitCode of
-      ExitSuccess → Right $ lines sOut
+      ExitSuccess → Right $ head $ lines sOut
       ExitFailure i → Left (i, sErr)
 
 -- | Convenience function combining 'run' and 'selectM'.
@@ -87,10 +88,9 @@ select
      -- options.
    → [String]
      -- ^ List from which the user should select.
-   → m (Either ProcessError [String])
+   → m (Either ProcessError String)
      -- ^ The selection made by the user, or a 'ProcessError', if the user
-     -- canceled. Unless the @dmenu2@ option '_filterMode' is set, the
-     -- '[String]` contains exactly one item.
+     -- canceled.
 select m0 entries = run $ m0 >> selectM entries
 
 -- | Same as 'selectM', but allows the user to select from a list of arbitrary
@@ -101,11 +101,10 @@ selectWithM
      -- ^ How to display an @a@ in @dmenu@.
    → [a]
      -- ^ List from which the user should select.
-   → m (Either ProcessError [a])
+   → m (Either ProcessError a)
      -- ^ The selection made by the user, or a 'ProcessError', if the user
-     -- canceled. Unless the @dmenu2@ option '_filterMode' is set, the
-     -- '[String]` contains exactly one item.
-selectWithM f xs = fmap (fmap (fromJust . flip lookup m)) <$> selectM (map f xs)
+     -- canceled.
+selectWithM f xs = fmap (fromJust . flip lookup m) <$> selectM (map f xs)
   where m = [ (f x, x) | x ← xs ]
 
 -- | Same as 'select', but allows the user to select from a list of arbitrary
@@ -131,11 +130,79 @@ selectWith
      -- ^ How to display an @a@ in @dmenu@.
    → [a]
      -- ^ List from which the user should select.
+   → m (Either ProcessError a)
+     -- ^ The selection made by the user, or a 'ProcessError', if the user
+     -- canceled.
+selectWith m0 f xs = run $ m0 >> selectWithM f xs
+
+
+
+-- | Like 'selectM' but uses the @dmenu2@ option @filterMode@, which
+-- returns not only the selected item, but all items which fuzzy match the
+-- input term.
+filterM
+  :: MonadDMenu m
+  => [String]
+     -- ^ List from which the user should filter.
+   → m (Either ProcessError [String])
+     -- ^ The selection made by the user, or a 'ProcessError', if the user
+     -- canceled.
+filterM entries = do
+  cfg ← (dmenu2 . filterMode .~ True) <$> get
+  liftIO $ do
+    (exitCode, sOut, sErr) ← readCreateProcessWithExitCode
+      (proc (_binaryPath cfg) (optionsToArgs cfg))
+      (unlines entries)
+    pure $ case exitCode of
+      ExitSuccess → Right $ lines sOut
+      ExitFailure i → Left (i, sErr)
+
+-- | Like 'select' but uses the @dmenu2@ option @filterMode@, which
+-- returns not only the selected item, but all items which fuzzy match the
+-- input term.
+filter
+  :: MonadIO m
+  => DMenuT m ()
+     -- ^ @State Options@ action which changes the default command line
+     -- options.
+   → [String]
+     -- ^ List from which the user should select.
+   → m (Either ProcessError [String])
+     -- ^ The selection made by the user, or a 'ProcessError', if the user
+     -- canceled.
+filter m0 entries = run $ m0 >> filterM entries
+
+-- | Like 'selectWithM' but uses the @dmenu2@ option @filterMode@, which
+-- returns not only the selected item, but all items which fuzzy match the
+-- input term.
+filterWithM
+  :: MonadDMenu m
+  => (a → String)
+     -- ^ How to display an @a@ in @dmenu@.
+   → [a]
+     -- ^ List from which the user should select.
    → m (Either ProcessError [a])
      -- ^ The selection made by the user, or a 'ProcessError', if the user
-     -- canceled. Unless the @dmenu2@ option '_filterMode' is set, the
-     -- '[String]` contains exactly one item.
-selectWith m0 f xs = run $ m0 >> selectWithM f xs
+     -- canceled.
+filterWithM f xs = fmap (fmap (fromJust . flip lookup m)) <$> filterM (map f xs)
+  where m = [ (f x, x) | x ← xs ]
+
+-- | Like 'selectWith' but uses the @dmenu2@ option @filterMode@, which
+-- returns not only the selected item, but all items which fuzzy match the
+-- input term.
+filterWith
+  :: MonadIO m
+  => DMenuT m ()
+     -- ^ @State Options@ action which changes the default command line
+     -- options.
+   → (a → String)
+     -- ^ How to display an @a@ in @dmenu@.
+   → [a]
+     -- ^ List from which the user should select.
+   → m (Either ProcessError [a])
+     -- ^ The selection made by the user, or a 'ProcessError', if the user
+     -- canceled.
+filterWith m0 f xs = run $ m0 >> filterWithM f xs
 
 
 splitFirstWord :: String → (String, String)

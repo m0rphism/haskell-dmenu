@@ -46,11 +46,13 @@ data Options = Options
   }
 
 -- | Contains the command line options of @dmenu2@ which are not part of
--- @dmenu@. The option descriptions are copied from the @dmenu2@ @man@ page.
+-- @dmenu@. The @_filterMode@ option is not listed; it can be implicitly used by
+-- using @DMenu.filter@ instead of @DMenu.select@. The option descriptions are
+-- copied from the @dmenu2@ @man@ page.
 data Options2 = Options2
   { -- | @-q@; dmenu will not show any items if the search string is empty.
     _displayNoItemsIfEmpty :: Bool
-    -- | @-r@; activates filter mode. All matching items currently shown in the list will be selected, starting with the item that is highlighted and wrapping around to the beginning of the list.
+    -- | @-r@; activates filter mode. All matching items currently shown in the list will be selected, starting with the item that is highlighted and wrapping around to the beginning of the list. (/Note/: Instead of setting this flag yourself, the @dmenu@ @filter@ functions can be used instead of the @select@ functions.)
   , _filterMode :: Bool
     -- | @-z@; dmenu uses fuzzy matching. It matches items that have all characters entered, in sequence they are entered, but there may be any number of characters between matched characters.  For example it takes @\"txt\"@ makes it to @\"*t*x*t\"@ glob pattern and checks if it matches.
   , _fuzzyMatching :: Bool

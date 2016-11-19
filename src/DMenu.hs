@@ -2,6 +2,7 @@
   TODO
     - Add documentation for .haskell-dmenu.conf
     - Add support for regular command line syntax config and/or env variable
+    - Add filterSelect/-M functions and make normal select functions return single elements.
 -}
 
 module DMenu (
@@ -10,7 +11,9 @@ module DMenu (
 
     -- * Running @dmenu@
     DMenuT, MonadDMenu, ProcessError,
-    run, selectM, select, selectWithM, selectWith,
+    run,
+    selectM, select, selectWithM, selectWith,
+    filterM, filter, filterWithM, filterWith,
 
     -- * Command Line Options
     Options(..),
@@ -64,6 +67,7 @@ import Control.Lens
 import DMenu.Color
 import DMenu.Options
 import DMenu.Run
+import Prelude hiding (filter)
 
 {- $overview
   This module provides complete bindings to the
