@@ -8,7 +8,7 @@ module DMenu (
     -- * Overview
     -- $overview
 
-    -- * Running DMenu
+    -- * Running @dmenu@
     DMenuT, MonadDMenu, ProcessError,
     run, selectM, select, selectWithM, selectWith,
 
@@ -29,7 +29,7 @@ module DMenu (
     selectedFGColor,
     printVersionAndExit,
 
-    -- * Extra Options for the dmenu2 fork
+    -- * Extra Options for the @dmenu2@ fork
     Options2(..),
     -- ** Lenses
     displayNoItemsIfEmpty,

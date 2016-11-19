@@ -25,9 +25,9 @@ data Options = Options
   , _numLines :: Int
     -- | @-p prompt@; defines the prompt to be displayed to the left of the input field.
   , _prompt :: String
-    -- | @-fn font@; defines the font or font set used. eg. "fixed" or "Monospace-12:normal" (an xft font)
+    -- | @-fn font@; defines the font or font set used. eg. @\"fixed\"@ or @\"Monospace-12:normal\"@ (an xft font)
   , _font :: String
-    -- | @-nb color@; defines the normal background color.  #RGB, #RRGGBB, and X color names are supported.
+    -- | @-nb color@; defines the normal background color.  @#RGB@, @#RRGGBB@, and X color names are supported.
   , _normalBGColor :: Color
     -- | @-nf color@; defines the normal foreground color.
   , _normalFGColor :: Color
@@ -39,6 +39,10 @@ data Options = Options
   , _printVersionAndExit :: Bool
     -- | Extra options only available in the dmenu2 fork.
   , _dmenu2 :: Options2
+    -- | When set to @True@, the @dmenu2@ options in '_dmenu2' are ignored. This
+    -- ensures compatibility with the normal @dmenu@. A user may set this flag
+    -- in the configuration file.
+  , _noDMenu2 :: Bool
   }
 
 -- | Contains the command line options of @dmenu2@ which are not part of
@@ -48,25 +52,25 @@ data Options2 = Options2
     _displayNoItemsIfEmpty :: Bool
     -- | @-r@; activates filter mode. All matching items currently shown in the list will be selected, starting with the item that is highlighted and wrapping around to the beginning of the list.
   , _filterMode :: Bool
-    -- | @-z@; dmenu uses fuzzy matching. It matches items that have all characters entered, in sequence they are entered, but there may be any number of characters between matched characters.  For example it takes "txt" makes it to "*t*x*t" glob pattern and checks if it matches.
+    -- | @-z@; dmenu uses fuzzy matching. It matches items that have all characters entered, in sequence they are entered, but there may be any number of characters between matched characters.  For example it takes @\"txt\"@ makes it to @\"*t*x*t\"@ glob pattern and checks if it matches.
   , _fuzzyMatching :: Bool
-    -- | @-t@; dmenu uses space-separated tokens to match menu items. Using this overrides -z option.
+    -- | @-t@; dmenu uses space-separated tokens to match menu items. Using this overrides @-z@ option.
   , _tokenMatching :: Bool
-    -- | @-mask@; dmenu masks input with asterisk characters (*).
+    -- | @-mask@; dmenu masks input with asterisk characters (@*@).
   , _maskInputWithStar :: Bool
-    -- | @-noinput@; dmenu ignores input from stdin (equivalent to: echo | dmenu).
+    -- | @-noinput@; dmenu ignores input from stdin (equivalent to: @echo | dmenu@).
   , _ignoreStdin :: Bool
     -- | @-s screen@; dmenu apears on the specified screen number. Number given corespondes to screen number in X optionsuration.
   , _spawnOnScreen :: Int
-    -- | @-name name@; defines window name for dmenu. Defaults to "dmenu".
+    -- | @-name name@; defines window name for dmenu. Defaults to @\"dmenu\"@.
   , _windowName :: String
-    -- | @-class class@; defines window class for dmenu. Defaults to "Dmenu".
+    -- | @-class class@; defines window class for dmenu. Defaults to @\"Dmenu"@.
   , _windowClass :: String
-    -- | @-o opacity@; defines window opacity for dmenu. Defaults to 1.0.
+    -- | @-o opacity@; defines window opacity for dmenu. Defaults to @1.0@.
   , _windowOpacity :: Double
     -- | @-dim opacity@; enables screen dimming when dmenu appers. Takes dim opacity as argument.
   , _windowDimOpacity :: Double
-    -- | @-dc color@; defines color of screen dimming. Active only when -dim in effect. Defautls to black (#000000)
+    -- | @-dc color@; defines color of screen dimming. Active only when @-dim@ in effect. Defautls to black (@#000000@)
   , _windowDimColor :: Color
     -- | @-h height@; defines the height of the bar in pixels.
   , _heightInPixels :: Int
@@ -103,6 +107,7 @@ defOptions = Options
   , _selectedFGColor = HexColor (-1)
   , _printVersionAndExit = False
   , _dmenu2 = defOptions2
+  , _noDMenu2 = False
   }
 
 defOptions2 :: Options2
@@ -142,7 +147,7 @@ optionsToArgs (Options{..}) = concat $ concat $
   , [ [ "-sb", showColorAsHex _selectedBGColor ] | _selectedBGColor /= HexColor (-1) ]
   , [ [ "-sf", showColorAsHex _selectedFGColor ] | _selectedFGColor /= HexColor (-1) ]
   , [ [ "-v"                                   ] | _printVersionAndExit ]
-  ] ++ options2ToArgs _dmenu2
+  ] ++ if _noDMenu2 then [] else options2ToArgs _dmenu2
 
 options2ToArgs :: Options2 → [[[String]]]
 options2ToArgs (Options2{..}) =
@@ -203,6 +208,7 @@ parseOptions = foldl f defOptions . map splitFirstWord . lines where
     "underlineColor"          → dmenu2 . underlineColor          .~ read args
     "historyFile"             → dmenu2 . historyFile             .~ args
     "printVersionAndExit"     → printVersionAndExit              .~ True
+    "noDMenu2"                → noDMenu2                         .~ True
     ""                        → id
     _                         → error $ "Invalid command found when parsing dmenu config file: " ++ cmd
 
