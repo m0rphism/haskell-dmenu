@@ -77,6 +77,8 @@ import Prelude hiding (filter)
   <http://tools.suckless.org/dmenu/ dmenu> and
   <https://bitbucket.org/melek/dmenu2 dmenu2> command-line tools.
 
+  <<doc/dmenu-pmount.png>>
+
   The @dmenu@ command line tool
 
   1.  takes command line 'Options' and reads a list of strings from @stdin@,
@@ -92,19 +94,20 @@ import Prelude hiding (filter)
   2.  as an interface for killing programs by piping process information from
       @ps aux@ into @dmenu@, and running @kill -9@ on the selected process id.
   3.  as an interface for mounting devices by piping the device files from @\/dev\/@
-      into @dmenu@, and running @pmount@ on the selected device.
+      into @dmenu@, and running @pmount@ on the selected device (shown in the
+      image above).
 
-  @dmenu2@ is a fork of @dmenu@, which provides additional options covered in
-  the 'Options2' data type.
+  @dmenu2@ is a fork of @dmenu@, which provides additional options, e.g. selecting
+  multiple items at once.
 
-  Additionally to the functionality of @dmenu@ and @dmenu2@, this library
-  supports specifying default command line options for @dmenu@ in a configuration
-  file.
+  Ontop of the functionality of @dmenu@ and @dmenu2@, this library
+  supports a configuration file for specifying default command line options for
+  @dmenu@.
 
   The simplest way to run @dmenu@ is with the 'select' function.
 
   Note for @stack@ users: When running programs using this library via
   @stack exec@, the program may fail to find @dmenu@ in the @PATH@.
   This problem can be solved by running the program directly without @stack@, or
-  by temporarily using an absolute path for @dmenu@ in the 'binaryPath' option.
+  by temporarily using an absolute path for @dmenu@ in the '_binaryPath' option.
 -}
