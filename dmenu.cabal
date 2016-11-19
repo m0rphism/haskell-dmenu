@@ -3,12 +3,11 @@ name:
 version:
   0.1.0.0
 synopsis:
-  Full bindings to the dmenu command line tool.
+  Complete bindings to the dmenu and dmenu2 command line tools.
 description:
-  Provides a full API to spawn a dmenu process, which lets the user fuzzy select
-  from a list.
+  Provides fuzzy selection via a GUI menu.
 homepage:
-  https://github.com/m0rphism/haskell-dmenu#readme
+  https://github.com/m0rphism/haskell-dmenu
 license:
   BSD3
 license-file:
@@ -34,7 +33,6 @@ library
   default-language:
     Haskell2010
   build-depends:
-    Earley,
     base >= 4.7 && < 5,
     containers,
     lens,
@@ -43,7 +41,7 @@ library
     process,
     directory
   ghc-options:
-    -Wall -O2 -fno-warn-partial-type-signatures -fdefer-type-errors
+    -Wall -O2
   exposed-modules:
     DMenu
   other-modules:
