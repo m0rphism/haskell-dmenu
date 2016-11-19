@@ -116,7 +116,8 @@ import Prelude hiding (filter)
   The default @Options@ used by 'run', 'select', etc. can be specified
   in the @~/.haskell-dmenu@ file.
 
-  The following shows an example @~/.haskell-dmenu@ file:
+  The following example shows the @~/.haskell-dmenu@ file used for the image from
+  the first section:
 
   > numLines         15
   > font             FiraMono:size=11
