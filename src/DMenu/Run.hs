@@ -31,9 +31,6 @@ type ProcessError = (Int, String)
 -- | Run a @StateT Options m a@ action using the command line options from the
 -- config file or an empty set of options as initial state.
 --
--- The config file is located at @~/.haskell-dmenu.conf@.
--- For an example see the @haskell-dmenu.conf@ file in the git repository.
---
 -- For example
 --
 -- > import qualified DMenu
@@ -47,7 +44,7 @@ run :: MonadIO m => DMenuT m a → m a
 run ma = evalStateT ma =<< readConfigOrDef =<< getDefConfigPath
 
 getDefConfigPath :: MonadIO m => m FilePath
-getDefConfigPath = (++"/.haskell-dmenu.conf") <$> liftIO getHomeDirectory
+getDefConfigPath = (++"/.haskell-dmenu") <$> liftIO getHomeDirectory
 
 -- | Run DMenu with the command line options from @m@ and a list of 'String's
 -- from which the user should choose.

@@ -1,8 +1,6 @@
 {-
   TODO
-    - Add documentation for .haskell-dmenu.conf
     - Add support for regular command line syntax config and/or env variable
-    - Add filterSelect/-M functions and make normal select functions return single elements.
 -}
 
 module DMenu (
@@ -63,6 +61,9 @@ module DMenu (
 
     -- * Reexports from @lens@
     (.=),
+
+    -- * Configuration File
+    -- $configFile
   ) where
 
 import Control.Lens
@@ -102,7 +103,7 @@ import Prelude hiding (filter)
 
   Ontop of the functionality of @dmenu@ and @dmenu2@, this library
   supports a configuration file for specifying default command line options for
-  @dmenu@.
+  @dmenu@. See the last section for more on the configuration file.
 
   The simplest way to run @dmenu@ is with the 'select' function.
 
@@ -110,4 +111,20 @@ import Prelude hiding (filter)
   @stack exec@, the program may fail to find @dmenu@ in the @PATH@.
   This problem can be solved by running the program directly without @stack@, or
   by temporarily using an absolute path for @dmenu@ in the '_binaryPath' option.
+-}
+{- $configFile
+  The default @Options@ used by 'run', 'select', etc. can be specified
+  in the @~/.haskell-dmenu@ file.
+
+  The following shows an example @~/.haskell-dmenu@ file:
+
+  > numLines         15
+  > font             FiraMono:size=11
+  > caseInsensitive  True
+  > normalBGColor    RGBColorF 0.02 0.02 0.02
+
+  The configuration file contains one line per option.
+  Each line consists of an option name and a value for the option.
+  The option names are identical to the corresponding lens names.
+  The values are read with @Prelude.read@ except for @Strings@ which don't need double quotes.
 -}

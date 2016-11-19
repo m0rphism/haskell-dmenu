@@ -179,15 +179,15 @@ parseOptions = foldl f defOptions . map splitFirstWord . lines where
   f :: Options → (String, String) → Options
   f opts (cmd, args) = opts & case cmd of
     "binaryPath"              → binaryPath                       .~ args
-    "displayAtBottom"         → displayAtBottom                  .~ True
-    "displayNoItemsIfEmpty"   → dmenu2 . displayNoItemsIfEmpty   .~ True
-    "grabKeyboardBeforeStdin" → grabKeyboardBeforeStdin          .~ True
-    "filterMode"              → dmenu2 . filterMode              .~ True
-    "caseInsensitive"         → caseInsensitive                  .~ True
-    "fuzzyMatching"           → dmenu2 . fuzzyMatching           .~ True
-    "tokenMatching"           → dmenu2 . tokenMatching           .~ True
-    "maskInputWithStar"       → dmenu2 . maskInputWithStar       .~ True
-    "ignoreStdin"             → dmenu2 . ignoreStdin             .~ True
+    "displayAtBottom"         → displayAtBottom                  .~ read args
+    "displayNoItemsIfEmpty"   → dmenu2 . displayNoItemsIfEmpty   .~ read args
+    "grabKeyboardBeforeStdin" → grabKeyboardBeforeStdin          .~ read args
+    "filterMode"              → dmenu2 . filterMode              .~ read args
+    "caseInsensitive"         → caseInsensitive                  .~ read args
+    "fuzzyMatching"           → dmenu2 . fuzzyMatching           .~ read args
+    "tokenMatching"           → dmenu2 . tokenMatching           .~ read args
+    "maskInputWithStar"       → dmenu2 . maskInputWithStar       .~ read args
+    "ignoreStdin"             → dmenu2 . ignoreStdin             .~ read args
     "spawnOnScreen"           → dmenu2 . spawnOnScreen           .~ read args
     "spawnOnMonitor"          → spawnOnMonitor                   .~ read args
     "windowName"              → dmenu2 . windowName              .~ args
@@ -209,8 +209,8 @@ parseOptions = foldl f defOptions . map splitFirstWord . lines where
     "selectedFGColor"         → selectedFGColor                  .~ read args
     "underlineColor"          → dmenu2 . underlineColor          .~ read args
     "historyFile"             → dmenu2 . historyFile             .~ args
-    "printVersionAndExit"     → printVersionAndExit              .~ True
-    "noDMenu2"                → noDMenu2                         .~ True
+    "printVersionAndExit"     → printVersionAndExit              .~ read args
+    "noDMenu2"                → noDMenu2                         .~ read args
     ""                        → id
     _                         → error $ "Invalid command found when parsing dmenu config file: " ++ cmd
 
