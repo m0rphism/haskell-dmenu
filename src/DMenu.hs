@@ -72,7 +72,7 @@ import DMenu.Run
 
   The @dmenu@ command line tool
 
-  1.  takes command line options and reads a list of strings from @stdin@,
+  1.  takes command line 'Options' and reads a list of strings from @stdin@,
   2.  presents the list in a special overlay window, in which the user can select
       from the list via fuzzy matching, and
   3.  prints the selected string to @stdout@ or fails with exit code @1@ if the
@@ -88,16 +88,16 @@ import DMenu.Run
       into @dmenu@, and running @pmount@ on the selected device.
 
   @dmenu2@ is a fork of @dmenu@, which provides additional options covered in
-  the @Options2@ data type.
+  the 'Options2' data type.
 
   Additionally to the functionality of @dmenu@ and @dmenu2@, this library
   supports specifying default command line options for @dmenu@ in a configuration
   file.
 
-  The simplest way to use this library is the @select@ function.
+  The simplest way to run @dmenu@ is with the 'select' function.
 
   Note for @stack@ users: When running programs using this library via
   @stack exec@, the program may fail to find @dmenu@ in the @PATH@.
   This problem can be solved by running the program directly without @stack@, or
-  by temporarily using an absolute path for @dmenu@ in the @binaryPath@ option.
+  by temporarily using an absolute path for @dmenu@ in the 'binaryPath' option.
 -}

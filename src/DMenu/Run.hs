@@ -18,7 +18,7 @@ import DMenu.Options
 -- be configured.
 type DMenuT = StateT Options
 
--- | The @MonadIO@ constraint additionally allows to spawn processes with
+-- | The 'MonadIO' constraint additionally allows to spawn processes with
 -- @System.Process@ in between.
 type MonadDMenu m = (MonadIO m, MonadState Options m)
 
@@ -47,14 +47,14 @@ run ma = evalStateT ma =<< readConfigOrDef =<< getDefConfigPath
 getDefConfigPath :: MonadIO m => m FilePath
 getDefConfigPath = (++"/.haskell-dmenu.conf") <$> liftIO getHomeDirectory
 
--- | Run DMenu with the command line options from @m@ and a list of @String@s
+-- | Run DMenu with the command line options from @m@ and a list of 'String's
 -- from which the user should choose.
 selectM
   :: MonadDMenu m
   => [String]
      -- ^ List from which the user should select.
    → m (Either ProcessError [String])
-     -- ^ The selection made by the user, or a @ProcessError@, if the user
+     -- ^ The selection made by the user, or a 'ProcessError', if the user
      -- canceled.
 selectM entries = do
   cfg ← get
@@ -66,7 +66,7 @@ selectM entries = do
       ExitSuccess → Right $ lines sOut
       ExitFailure i → Left (i, sErr)
 
--- | Convenience function combining @run@ and @selectM@.
+-- | Convenience function combining 'run' and 'selectM'.
 --
 -- The following example has the same behavior as the example for @run@:
 --
@@ -87,12 +87,12 @@ select
    → [String]
      -- ^ List from which the user should select.
    → m (Either ProcessError [String])
-     -- ^ The selection made by the user, or a @ProcessError@, if the user
+     -- ^ The selection made by the user, or a 'ProcessError', if the user
      -- canceled.
 select m0 entries = run $ m0 >> selectM entries
 
--- | Same as @selectM@, but allows the user to select from a list of arbitrary
--- elements, which have a @String@ representation.
+-- | Same as 'selectM', but allows the user to select from a list of arbitrary
+-- elements, which have a 'String' representation.
 selectWithM
   :: MonadDMenu m
   => (a → String)
@@ -100,13 +100,13 @@ selectWithM
    → [a]
      -- ^ List from which the user should select.
    → m (Either ProcessError [a])
-     -- ^ The selection made by the user, or a @ProcessError@, if the user
+     -- ^ The selection made by the user, or a 'ProcessError', if the user
      -- canceled.
 selectWithM f xs = fmap (fmap (fromJust . flip lookup m)) <$> selectM (map f xs)
   where m = [ (f x, x) | x ← xs ]
 
--- | Same as @select@, but allows the user to select from a list of arbitrary
--- elements, which have a @String@ representation.
+-- | Same as 'select', but allows the user to select from a list of arbitrary
+-- elements, which have a 'String' representation.
 --
 -- For example
 --
@@ -129,7 +129,7 @@ selectWith
    → [a]
      -- ^ List from which the user should select.
    → m (Either ProcessError [a])
-     -- ^ The selection made by the user, or a @ProcessError@, if the user
+     -- ^ The selection made by the user, or a 'ProcessError', if the user
      -- canceled.
 selectWith m0 f xs = run $ m0 >> selectWithM f xs
 
