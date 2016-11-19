@@ -11,17 +11,41 @@ import DMenu.Color
 -- The option descriptions are copied from the dmenu @man@ page.
 data Options = Options
   { -- | Path to the the dmenu executable file.
+    --   Default looks for @dmenu@ in the @PATH@ enviroment variable.
     _binaryPath :: FilePath
     -- | @-b@; dmenu appears at the bottom of the screen.
   , _displayAtBottom :: Bool
-    -- | @-q@; dmenu will not show any items if the search string is empty.
-  , _displayNoItemsIfEmpty :: Bool
     -- | @-f@; dmenu grabs the keyboard before reading stdin.  This is faster, but will lock up X until stdin reaches end-of-file.
   , _grabKeyboardBeforeStdin :: Bool
-    -- | @-r@; activates filter mode. All matching items currently shown in the list will be selected, starting with the item that is highlighted and wrapping around to the beginning of the list.
-  , _filterMode :: Bool
     -- | @-i@; dmenu matches menu items case insensitively.
   , _caseInsensitive :: Bool
+    -- | @-m screen@; dmenu is displayed on the monitor number supplied. Monitor numbers are starting from 0.
+  , _spawnOnMonitor :: Int
+    -- | @-l lines@; dmenu lists items vertically, with the given number of lines.
+  , _numLines :: Int
+    -- | @-p prompt@; defines the prompt to be displayed to the left of the input field.
+  , _prompt :: String
+    -- | @-fn font@; defines the font or font set used. eg. "fixed" or "Monospace-12:normal" (an xft font)
+  , _font :: String
+    -- | @-nb color@; defines the normal background color.  #RGB, #RRGGBB, and X color names are supported.
+  , _normalBGColor :: Color
+    -- | @-nf color@; defines the normal foreground color.
+  , _normalFGColor :: Color
+    -- | @-sb color@; defines the selected background color.
+  , _selectedBGColor :: Color
+    -- | @-sf color@; defines the selected foreground color.
+  , _selectedFGColor :: Color
+    -- | @-v@; prints version information to stdout, then exits.
+  , _printVersionAndExit :: Bool
+    -- | Extra options only available in the dmenu2 fork.
+  , _dmenu2 :: Options2
+  }
+
+data Options2 = Options2
+  { -- | @-q@; dmenu will not show any items if the search string is empty.
+    _displayNoItemsIfEmpty :: Bool
+    -- | @-r@; activates filter mode. All matching items currently shown in the list will be selected, starting with the item that is highlighted and wrapping around to the beginning of the list.
+  , _filterMode :: Bool
     -- | @-z@; dmenu uses fuzzy matching. It matches items that have all characters entered, in sequence they are entered, but there may be any number of characters between matched characters.  For example it takes "txt" makes it to "*t*x*t" glob pattern and checks if it matches.
   , _fuzzyMatching :: Bool
     -- | @-t@; dmenu uses space-separated tokens to match menu items. Using this overrides -z option.
@@ -42,49 +66,31 @@ data Options = Options
   , _windowDimOpacity :: Double
     -- | @-dc color@; defines color of screen dimming. Active only when -dim in effect. Defautls to black (#000000)
   , _windowDimColor :: Color
-    -- | @-l lines@; dmenu lists items vertically, with the given number of lines.
-  , _numLines :: Int
     -- | @-h height@; defines the height of the bar in pixels.
   , _heightInPixels :: Int
     -- | @-uh height@; defines the height of the underline in pixels.
   , _underlineHeightInPixels :: Int
-    -- | @-p prompt@; defines the prompt to be displayed to the left of the input field.
-  , _prompt :: String
-    -- | @-fn font@; defines the font or font set used. eg. "fixed" or "Monospace-12:normal" (an xft font)
-  , _font :: String
     -- | @-x xoffset@; defines the offset from the left border of the screen.
   , _windowOffsetX :: Int
     -- | @-y yoffset@; defines the offset from the top border of the screen.
   , _windowOffsetY :: Int
     -- | @-w width@; defines the desired menu window width.
   , _width :: Int
-    -- | @-nb color@; defines the normal background color.  #RGB, #RRGGBB, and X color names are supported.
-  , _normalBGColor :: Color
-    -- | @-nf color@; defines the normal foreground color.
-  , _normalFGColor :: Color
-    -- | @-sb color@; defines the selected background color.
-  , _selectedBGColor :: Color
-    -- | @-sf color@; defines the selected foreground color.
-  , _selectedFGColor :: Color
     -- | @-uc color@; defines the underline color.
   , _underlineColor :: Color
     -- | @-hist <histfile>@; the file to use for history
   , _historyFile :: FilePath
-    -- | @-v@; prints version information to stdout, then exits.
-  , _printVersionAndExit :: Bool
   }
 
-makeLenses ''Options
 
-defOptions :: Options
-defOptions = Options
-  { _binaryPath = "dmenu"
-  , _displayAtBottom = False
-  , _displayNoItemsIfEmpty = False
-  , _grabKeyboardBeforeStdin = False
-  , _filterMode = False
-  , _caseInsensitive = False
+makeLenses ''Options
+makeLenses ''Options2
+
+defOptions2 :: Options2
+defOptions2 = Options2
+  { _filterMode = False
   , _fuzzyMatching = False
+  , _displayNoItemsIfEmpty = False
   , _tokenMatching = False
   , _maskInputWithStar = False
   , _ignoreStdin = False
@@ -94,30 +100,53 @@ defOptions = Options
   , _windowOpacity = (-1)
   , _windowDimOpacity = (-1)
   , _windowDimColor = HexColor (-1)
-  , _numLines = (-1)
   , _heightInPixels = (-1)
   , _underlineHeightInPixels = (-1)
+  , _windowOffsetX = (-1)
+  , _windowOffsetY = (-1)
+  , _width = (-1)
+  , _underlineColor = HexColor (-1)
+  , _historyFile = ""
+  }
+
+defOptions :: Options
+defOptions = Options
+  { _binaryPath = "dmenu"
+  , _displayAtBottom = False
+  , _grabKeyboardBeforeStdin = False
+  , _caseInsensitive = False
+  , _numLines = (-1)
   , _prompt = ""
   , _font = ""
-  , _windowOffsetX = 0
-  , _windowOffsetY = 0
-  , _width = (-1)
+  , _spawnOnMonitor = (-1)
   , _normalBGColor = HexColor (-1)
   , _normalFGColor = HexColor (-1)
   , _selectedBGColor = HexColor (-1)
   , _selectedFGColor = HexColor (-1)
-  , _underlineColor = HexColor (-1)
-  , _historyFile = ""
   , _printVersionAndExit = False
+  , _dmenu2 = defOptions2
   }
 
 optionsToArgs :: Options → [String]
-optionsToArgs (Options{..}) = concat $ concat
+optionsToArgs (Options{..}) = concat $ concat $
   [ [ [ "-b"                                   ] | _displayAtBottom ]
-  , [ [ "-q"                                   ] | _displayNoItemsIfEmpty ]
   , [ [ "-f"                                   ] | _grabKeyboardBeforeStdin ]
-  , [ [ "-r"                                   ] | _filterMode ]
   , [ [ "-i"                                   ] | _caseInsensitive ]
+  , [ [ "-m", show _spawnOnMonitor             ] | _spawnOnMonitor /= (-1) ]
+  , [ [ "-l", show _numLines                   ] | _numLines /= (-1) ]
+  , [ [ "-p", _prompt                          ] | _prompt /= "" ]
+  , [ [ "-fn", _font                           ] | _font /= "" ]
+  , [ [ "-nb", showColorAsHex _normalBGColor   ] | _normalBGColor /= HexColor (-1) ]
+  , [ [ "-nf", showColorAsHex _normalFGColor   ] | _normalFGColor /= HexColor (-1) ]
+  , [ [ "-sb", showColorAsHex _selectedBGColor ] | _selectedBGColor /= HexColor (-1) ]
+  , [ [ "-sf", showColorAsHex _selectedFGColor ] | _selectedFGColor /= HexColor (-1) ]
+  , [ [ "-v"                                   ] | _printVersionAndExit ]
+  ] ++ options2ToArgs _dmenu2
+
+options2ToArgs :: Options2 → [[[String]]]
+options2ToArgs (Options2{..}) =
+  [ [ [ "-q"                                   ] | _displayNoItemsIfEmpty ]
+  , [ [ "-r"                                   ] | _filterMode ]
   , [ [ "-z"                                   ] | _fuzzyMatching ]
   , [ [ "-t"                                   ] | _tokenMatching ]
   , [ [ "-mask"                                ] | _maskInputWithStar ]
@@ -128,95 +157,88 @@ optionsToArgs (Options{..}) = concat $ concat
   , [ [ "-o", show _windowOpacity              ] | _windowOpacity /= (-1) ]
   , [ [ "-dim"                                 ] | _windowDimOpacity /= (-1) ]
   , [ [ "-dc", showColorAsHex _windowDimColor  ] | _windowDimColor /= HexColor (-1) ]
-  , [ [ "-l", show _numLines                   ] | _numLines /= (-1) ]
   , [ [ "-h", show _heightInPixels             ] | _heightInPixels /= (-1) ]
   , [ [ "-uh", show _underlineHeightInPixels   ] | _underlineHeightInPixels /= (-1) ]
-  , [ [ "-p", _prompt                          ] | _prompt /= "" ]
-  , [ [ "-fn", _font                           ] | _font /= "" ]
   , [ [ "-x", show _windowOffsetX              ] | _windowOffsetX /= (-1) ]
   , [ [ "-y", show _windowOffsetY              ] | _windowOffsetY /= (-1) ]
   , [ [ "-w", show _width                      ] | _width /= (-1) ]
-  , [ [ "-nb", showColorAsHex _normalBGColor   ] | _normalBGColor /= HexColor (-1) ]
-  , [ [ "-nf", showColorAsHex _normalFGColor   ] | _normalFGColor /= HexColor (-1) ]
-  , [ [ "-sb", showColorAsHex _selectedBGColor ] | _selectedBGColor /= HexColor (-1) ]
-  , [ [ "-sf", showColorAsHex _selectedFGColor ] | _selectedFGColor /= HexColor (-1) ]
   , [ [ "-uc", showColorAsHex _underlineColor  ] | _underlineColor /= HexColor (-1) ]
   , [ [ "-hist", show _historyFile             ] | _historyFile /= "" ]
-  , [ [ "-v"                                   ] | _printVersionAndExit ]
   ]
 
 parseOptions :: String → Options
 parseOptions = foldl f defOptions . map splitFirstWord . lines where
   f :: Options → (String, String) → Options
   f opts (cmd, args) = opts & case cmd of
-    "binaryPath"              → binaryPath              .~ args
-    "displayAtBottom"         → displayAtBottom         .~ True
-    "displayNoItemsIfEmpty"   → displayNoItemsIfEmpty   .~ True
-    "grabKeyboardBeforeStdin" → grabKeyboardBeforeStdin .~ True
-    "filterMode"              → filterMode              .~ True
-    "caseInsensitive"         → caseInsensitive         .~ True
-    "fuzzyMatching"           → fuzzyMatching           .~ True
-    "tokenMatching"           → tokenMatching           .~ True
-    "maskInputWithStar"       → maskInputWithStar       .~ True
-    "ignoreStdin"             → ignoreStdin             .~ True
-    "spawnOnScreen"           → spawnOnScreen                .~ read args
-    "windowName"              → windowName              .~ args
-    "windowClass"             → windowClass             .~ args
-    "windowOpacity"           → windowOpacity           .~ read args
-    "windowDimOpacity"        → windowDimOpacity        .~ read args
-    "windowDimColor"          → windowDimColor          .~ read args
-    "numLines"                → numLines                .~ read args
-    "heightInPixels"          → heightInPixels          .~ read args
-    "underlineHeightInPixels" → underlineHeightInPixels .~ read args
-    "prompt"                  → prompt                  .~ args
-    "font"                    → font                    .~ args
-    "windowOffsetX"           → windowOffsetX           .~ read args
-    "windowOffsetY"           → windowOffsetY           .~ read args
-    "width"                   → width                   .~ read args
-    "normalBGColor"           → normalBGColor           .~ read args
-    "normalFGColor"           → normalFGColor           .~ read args
-    "selectedBGColor"         → selectedBGColor         .~ read args
-    "selectedFGColor"         → selectedFGColor         .~ read args
-    "underlineColor"          → underlineColor          .~ read args
-    "historyFile"             → historyFile             .~ args
-    "printVersionAndExit"     → printVersionAndExit     .~ True
+    "binaryPath"              → binaryPath                       .~ args
+    "displayAtBottom"         → displayAtBottom                  .~ True
+    "displayNoItemsIfEmpty"   → dmenu2 . displayNoItemsIfEmpty   .~ True
+    "grabKeyboardBeforeStdin" → grabKeyboardBeforeStdin          .~ True
+    "filterMode"              → dmenu2 . filterMode              .~ True
+    "caseInsensitive"         → caseInsensitive                  .~ True
+    "fuzzyMatching"           → dmenu2 . fuzzyMatching           .~ True
+    "tokenMatching"           → dmenu2 . tokenMatching           .~ True
+    "maskInputWithStar"       → dmenu2 . maskInputWithStar       .~ True
+    "ignoreStdin"             → dmenu2 . ignoreStdin             .~ True
+    "spawnOnScreen"           → dmenu2 . spawnOnScreen           .~ read args
+    "spawnOnMonitor"          → spawnOnMonitor                   .~ read args
+    "windowName"              → dmenu2 . windowName              .~ args
+    "windowClass"             → dmenu2 . windowClass             .~ args
+    "windowOpacity"           → dmenu2 . windowOpacity           .~ read args
+    "windowDimOpacity"        → dmenu2 . windowDimOpacity        .~ read args
+    "windowDimColor"          → dmenu2 . windowDimColor          .~ read args
+    "numLines"                → numLines                         .~ read args
+    "heightInPixels"          → dmenu2 . heightInPixels          .~ read args
+    "underlineHeightInPixels" → dmenu2 . underlineHeightInPixels .~ read args
+    "prompt"                  → prompt                           .~ args
+    "font"                    → font                             .~ args
+    "windowOffsetX"           → dmenu2 . windowOffsetX           .~ read args
+    "windowOffsetY"           → dmenu2 . windowOffsetY           .~ read args
+    "width"                   → dmenu2 . width                   .~ read args
+    "normalBGColor"           → normalBGColor                    .~ read args
+    "normalFGColor"           → normalFGColor                    .~ read args
+    "selectedBGColor"         → selectedBGColor                  .~ read args
+    "selectedFGColor"         → selectedFGColor                  .~ read args
+    "underlineColor"          → dmenu2 . underlineColor          .~ read args
+    "historyFile"             → dmenu2 . historyFile             .~ args
+    "printVersionAndExit"     → printVersionAndExit              .~ True
     ""                        → id
     _                         → error $ "Invalid command found when parsing dmenu config file: " ++ cmd
 
-printOptions :: Options → String
-printOptions Options{..} = unlines $ concat
-  [ [ "binaryPath " ++ _binaryPath                                | _binaryPath /= "" ]
-  , [ "displayAtBottom"                                           | _displayAtBottom ]
-  , [ "displayNoItemsIfEmpty"                                     | _displayNoItemsIfEmpty ]
-  , [ "grabKeyboardBeforeStdin"                                   | _grabKeyboardBeforeStdin ]
-  , [ "filterMode"                                                | _filterMode ]
-  , [ "caseInsensitive"                                           | _caseInsensitive ]
-  , [ "fuzzyMatching"                                             | _fuzzyMatching ]
-  , [ "tokenMatching"                                             | _tokenMatching ]
-  , [ "maskInputWithStar"                                         | _maskInputWithStar ]
-  , [ "ignoreStdin"                                               | _ignoreStdin ]
-  , [ "spawnOnScreen " ++ show _spawnOnScreen                     | _spawnOnScreen /= (-1) ]
-  , [ "windowName " ++ _windowName                                | _windowName /= "" ]
-  , [ "windowClass " ++ _windowClass                              | _windowClass /= "" ]
-  , [ "windowOpacity " ++ show _windowOpacity                     | _windowOpacity /= (-1) ]
-  , [ "windowDimOpacity " ++ show _windowDimOpacity               | _windowDimOpacity /= (-1) ]
-  , [ "windowDimColor " ++ show _windowDimColor                   | _windowDimColor /= HexColor (-1) ]
-  , [ "numLines " ++ show _numLines                               | _numLines /= (-1) ]
-  , [ "heightInPixels " ++ show _heightInPixels                   | _heightInPixels /= (-1) ]
-  , [ "underlineHeightInPixels " ++ show _underlineHeightInPixels | _underlineHeightInPixels /= (-1) ]
-  , [ "prompt " ++ show _prompt                                   | _prompt /= "" ]
-  , [ "font " ++ show _font                                       | _font /= "" ]
-  , [ "windowOffsetX " ++ show _windowOffsetX                     | _windowOffsetX /= (-1) ]
-  , [ "windowOffsetY " ++ show _windowOffsetY                     | _windowOffsetY /= (-1) ]
-  , [ "width " ++ show _width                                     | _width /= (-1) ]
-  , [ "normalBGColor "   ++ show _normalBGColor                   | _normalBGColor /= HexColor (-1) ]
-  , [ "normalFGColor "   ++ show _normalFGColor                   | _normalFGColor /= HexColor (-1) ]
-  , [ "selectedBGColor " ++ show _selectedBGColor                 | _selectedBGColor /= HexColor (-1) ]
-  , [ "selectedFGColor " ++ show _selectedFGColor                 | _selectedFGColor /= HexColor (-1) ]
-  , [ "underlineColor "  ++ show _underlineColor                  | _underlineColor /= HexColor (-1) ]
-  , [ "historyFile " ++ show _historyFile                         | _historyFile /= "" ]
-  , [ "printVersionAndExit"                                       | _printVersionAndExit ]
-  ]
+-- printOptions :: Options → String
+-- printOptions Options{..} = unlines $ concat
+--   [ [ "binaryPath " ++ _binaryPath                                | _binaryPath /= "" ]
+--   , [ "displayAtBottom"                                           | _displayAtBottom ]
+--   , [ "displayNoItemsIfEmpty"                                     | _displayNoItemsIfEmpty ]
+--   , [ "grabKeyboardBeforeStdin"                                   | _grabKeyboardBeforeStdin ]
+--   , [ "filterMode"                                                | _filterMode ]
+--   , [ "caseInsensitive"                                           | _caseInsensitive ]
+--   , [ "fuzzyMatching"                                             | _fuzzyMatching ]
+--   , [ "tokenMatching"                                             | _tokenMatching ]
+--   , [ "maskInputWithStar"                                         | _maskInputWithStar ]
+--   , [ "ignoreStdin"                                               | _ignoreStdin ]
+--   , [ "spawnOnScreen " ++ show _spawnOnScreen                     | _spawnOnScreen /= (-1) ]
+--   , [ "windowName " ++ _windowName                                | _windowName /= "" ]
+--   , [ "windowClass " ++ _windowClass                              | _windowClass /= "" ]
+--   , [ "windowOpacity " ++ show _windowOpacity                     | _windowOpacity /= (-1) ]
+--   , [ "windowDimOpacity " ++ show _windowDimOpacity               | _windowDimOpacity /= (-1) ]
+--   , [ "windowDimColor " ++ show _windowDimColor                   | _windowDimColor /= HexColor (-1) ]
+--   , [ "numLines " ++ show _numLines                               | _numLines /= (-1) ]
+--   , [ "heightInPixels " ++ show _heightInPixels                   | _heightInPixels /= (-1) ]
+--   , [ "underlineHeightInPixels " ++ show _underlineHeightInPixels | _underlineHeightInPixels /= (-1) ]
+--   , [ "prompt " ++ show _prompt                                   | _prompt /= "" ]
+--   , [ "font " ++ show _font                                       | _font /= "" ]
+--   , [ "windowOffsetX " ++ show _windowOffsetX                     | _windowOffsetX /= (-1) ]
+--   , [ "windowOffsetY " ++ show _windowOffsetY                     | _windowOffsetY /= (-1) ]
+--   , [ "width " ++ show _width                                     | _width /= (-1) ]
+--   , [ "normalBGColor "   ++ show _normalBGColor                   | _normalBGColor /= HexColor (-1) ]
+--   , [ "normalFGColor "   ++ show _normalFGColor                   | _normalFGColor /= HexColor (-1) ]
+--   , [ "selectedBGColor " ++ show _selectedBGColor                 | _selectedBGColor /= HexColor (-1) ]
+--   , [ "selectedFGColor " ++ show _selectedFGColor                 | _selectedFGColor /= HexColor (-1) ]
+--   , [ "underlineColor "  ++ show _underlineColor                  | _underlineColor /= HexColor (-1) ]
+--   , [ "historyFile " ++ show _historyFile                         | _historyFile /= "" ]
+--   , [ "printVersionAndExit"                                       | _printVersionAndExit ]
+--   ]
 
 splitFirstWord :: String → (String, String)
 splitFirstWord = go "" where
