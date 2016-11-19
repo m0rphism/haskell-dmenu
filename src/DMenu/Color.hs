@@ -1,3 +1,5 @@
+{-# LANGUAGE UnicodeSyntax, LambdaCase #-}
+
 module DMenu.Color (
     Color(..), showColorAsHex,
   ) where

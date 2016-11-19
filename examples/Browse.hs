@@ -1,3 +1,5 @@
+{-# LANGUAGE UnicodeSyntax, LambdaCase #-}
+
 import Control.Lens
 import System.Process
 

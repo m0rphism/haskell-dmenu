@@ -1,3 +1,5 @@
+{-# LANGUAGE UnicodeSyntax, LambdaCase, ScopedTypeVariables #-}
+
 import Control.Monad
 import Control.Monad.IO.Class
 import Control.Lens

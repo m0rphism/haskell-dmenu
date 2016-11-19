@@ -1,3 +1,4 @@
+{-# LANGUAGE UnicodeSyntax, LambdaCase #-}
 {-# LANGUAGE RecordWildCards, TemplateHaskell #-}
 
 module DMenu.Options where

@@ -1,3 +1,5 @@
+{-# LANGUAGE UnicodeSyntax, LambdaCase, FlexibleContexts #-}
+
 import qualified DMenu
 import Control.Lens
 
@@ -18,5 +20,5 @@ repl = DMenu.repl cmdOpts ["A","B","C"] $ \case
     print ss
     pure $ Just $ map (head ss ++ ) ["1","2","3"]
 
-select':: IO ()
+select' :: IO ()
 select' = print =<< DMenu.select' cmdOpts show [1..10::Int]

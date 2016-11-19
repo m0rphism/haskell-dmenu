@@ -1,56 +1,47 @@
-name:                dmenu
-version:             0.1.0.0
-synopsis:            Simple project template from stack
-description:         Please see README.md
-homepage:            https://github.com/githubuser/system-fc#readme
-license:             BSD3
-license-file:        LICENSE
-author:              Author name here
-maintainer:          example@example.com
-copyright:           2016 Author name here
-category:            Web
-build-type:          Simple
-cabal-version:       >=1.10
+name:
+  dmenu
+version:
+  0.1.0.0
+synopsis:
+  Full bindings to the dmenu command line tool.
+description:
+  Provides a full API to spawn a dmenu process, which lets the user fuzzy select
+  from a list.
+homepage:
+  https://github.com/m0rphism/haskell-dmenu#readme
+license:
+  BSD3
+license-file:
+  LICENSE
+author:
+  Hannes Saffrich
+maintainer:
+  m0rphism@zankapfel.org
+copyright:
+  2016 Hannes Saffrich
+category:
+  System
+build-type:
+  Simple
+cabal-version:
+  >=1.10
 
 library
-  hs-source-dirs:      src
-  default-language:    Haskell2010
-  build-depends:       Earley
-                     , base >= 4.7 && < 5
-                     , containers
-                     , lens
-                     , mtl
-                     , transformers
-                     , process
-                     , directory
-  default-extensions: ScopedTypeVariables
-                    , BangPatterns
-                    , LambdaCase
-                    , TupleSections
-                    , MultiWayIf
-                    , PatternGuards
-                    , MonadComprehensions
-                    , PostfixOperators
-                    , PackageImports
-                    , EmptyDataDecls
-                    , TypeOperators
-                    , ExistentialQuantification
-                    , GADTs
-                    , MultiParamTypeClasses
-                    , FlexibleContexts
-                    , FlexibleInstances
-                    , InstanceSigs
-                    , PolyKinds
-                    , DataKinds
-                    , TypeFamilies
-                    , ConstraintKinds
-                    , PartialTypeSignatures
-                    , LiberalTypeSynonyms
-                    , RankNTypes
-                    , RecursiveDo
-                    , StandaloneDeriving
-                    , UnicodeSyntax
-  ghc-options: -Wall -threaded -O2 -fno-warn-partial-type-signatures -fdefer-type-errors
+  hs-source-dirs:
+    src
+  default-language:
+    Haskell2010
+  build-depends:
+    Earley,
+    base >= 4.7 && < 5,
+    containers,
+    lens,
+    mtl,
+    transformers,
+    process,
+    directory
+  ghc-options:
+    -Wall -O2 -fno-warn-partial-type-signatures -fdefer-type-errors
   exposed-modules:
     DMenu
   other-modules:
@@ -59,342 +50,163 @@ library
     DMenu.Run
 
 executable example1
-  hs-source-dirs:      examples
-  default-language:    Haskell2010
-  main-is:             Example1.hs
-  build-depends:       Earley
-                     , base >= 4.7 && < 5
-                     , containers
-                     , lens
-                     , mtl
-                     , transformers
-                     , process
-                     , directory
-                     , dmenu
-  default-extensions: ScopedTypeVariables
-                    , BangPatterns
-                    , LambdaCase
-                    , TupleSections
-                    , MultiWayIf
-                    , PatternGuards
-                    , MonadComprehensions
-                    , PostfixOperators
-                    , PackageImports
-                    , EmptyDataDecls
-                    , TypeOperators
-                    , ExistentialQuantification
-                    , GADTs
-                    , MultiParamTypeClasses
-                    , FlexibleContexts
-                    , FlexibleInstances
-                    , InstanceSigs
-                    , PolyKinds
-                    , DataKinds
-                    , TypeFamilies
-                    , ConstraintKinds
-                    , PartialTypeSignatures
-                    , LiberalTypeSynonyms
-                    , RankNTypes
-                    , RecursiveDo
-                    , StandaloneDeriving
-                    , UnicodeSyntax
-  ghc-options: -Wall -threaded -O2 -fno-warn-partial-type-signatures -fdefer-type-errors
+  hs-source-dirs:
+    examples
+  default-language:
+    Haskell2010
+  main-is:
+    Example1.hs
+  build-depends:
+    Earley,
+    base >= 4.7 && < 5,
+    containers,
+    lens,
+    mtl,
+    transformers,
+    process,
+    directory,
+    dmenu
+  ghc-options:
+    -Wall -threaded -O2 -fno-warn-partial-type-signatures -fdefer-type-errors
 
 executable dmenu-launcher
-  hs-source-dirs:      examples
-  default-language:    Haskell2010
-  main-is:             Launcher.hs
-  build-depends:       Earley
-                     , base >= 4.7 && < 5
-                     , containers
-                     , lens
-                     , mtl
-                     , transformers
-                     , process
-                     , directory
-                     , dmenu
-  default-extensions: ScopedTypeVariables
-                    , BangPatterns
-                    , LambdaCase
-                    , TupleSections
-                    , MultiWayIf
-                    , PatternGuards
-                    , MonadComprehensions
-                    , PostfixOperators
-                    , PackageImports
-                    , EmptyDataDecls
-                    , TypeOperators
-                    , ExistentialQuantification
-                    , GADTs
-                    , MultiParamTypeClasses
-                    , FlexibleContexts
-                    , FlexibleInstances
-                    , InstanceSigs
-                    , PolyKinds
-                    , DataKinds
-                    , TypeFamilies
-                    , ConstraintKinds
-                    , PartialTypeSignatures
-                    , LiberalTypeSynonyms
-                    , RankNTypes
-                    , RecursiveDo
-                    , StandaloneDeriving
-                    , UnicodeSyntax
-  ghc-options: -Wall -threaded -O2 -fno-warn-partial-type-signatures -fdefer-type-errors
+  hs-source-dirs:
+    examples
+  default-language:
+    Haskell2010
+  main-is:
+    Launcher.hs
+  build-depends:
+    Earley,
+    base >= 4.7 && < 5,
+    containers,
+    lens,
+    mtl,
+    transformers,
+    process,
+    directory,
+    dmenu
+  ghc-options:
+    -Wall -threaded -O2 -fno-warn-partial-type-signatures -fdefer-type-errors
 
 executable dmenu-pmount
-  hs-source-dirs:      examples
-  default-language:    Haskell2010
-  main-is:             PMount.hs
-  build-depends:       Earley
-                     , base >= 4.7 && < 5
-                     , containers
-                     , lens
-                     , mtl
-                     , transformers
-                     , process
-                     , directory
-                     , dmenu
-  default-extensions: ScopedTypeVariables
-                    , BangPatterns
-                    , LambdaCase
-                    , TupleSections
-                    , MultiWayIf
-                    , PatternGuards
-                    , MonadComprehensions
-                    , PostfixOperators
-                    , PackageImports
-                    , EmptyDataDecls
-                    , TypeOperators
-                    , ExistentialQuantification
-                    , GADTs
-                    , MultiParamTypeClasses
-                    , FlexibleContexts
-                    , FlexibleInstances
-                    , InstanceSigs
-                    , PolyKinds
-                    , DataKinds
-                    , TypeFamilies
-                    , ConstraintKinds
-                    , PartialTypeSignatures
-                    , LiberalTypeSynonyms
-                    , RankNTypes
-                    , RecursiveDo
-                    , StandaloneDeriving
-                    , UnicodeSyntax
-  ghc-options: -Wall -threaded -O2 -fno-warn-partial-type-signatures -fdefer-type-errors
+  hs-source-dirs:
+    examples
+  default-language:
+    Haskell2010
+  main-is:
+    PMount.hs
+  build-depends:
+    Earley,
+    base >= 4.7 && < 5,
+    containers,
+    lens,
+    mtl,
+    transformers,
+    process,
+    directory,
+    dmenu
+  ghc-options:
+    -Wall -threaded -O2 -fno-warn-partial-type-signatures -fdefer-type-errors
 
 executable dmenu-mpd
-  hs-source-dirs:      examples
-  default-language:    Haskell2010
-  main-is:             PMount.hs
-  build-depends:       Earley
-                     , base >= 4.7 && < 5
-                     , containers
-                     , lens
-                     , mtl
-                     , transformers
-                     , process
-                     , directory
-                     , dmenu
-                     , libmpd
-  default-extensions: ScopedTypeVariables
-                    , BangPatterns
-                    , LambdaCase
-                    , TupleSections
-                    , MultiWayIf
-                    , PatternGuards
-                    , MonadComprehensions
-                    , PostfixOperators
-                    , PackageImports
-                    , EmptyDataDecls
-                    , TypeOperators
-                    , ExistentialQuantification
-                    , GADTs
-                    , MultiParamTypeClasses
-                    , FlexibleContexts
-                    , FlexibleInstances
-                    , InstanceSigs
-                    , PolyKinds
-                    , DataKinds
-                    , TypeFamilies
-                    , ConstraintKinds
-                    , PartialTypeSignatures
-                    , LiberalTypeSynonyms
-                    , RankNTypes
-                    , RecursiveDo
-                    , StandaloneDeriving
-                    , UnicodeSyntax
-  ghc-options: -Wall -threaded -O2 -fno-warn-partial-type-signatures -fdefer-type-errors
+  hs-source-dirs:
+    examples
+  default-language:
+    Haskell2010
+  main-is:
+    PMount.hs
+  build-depends:
+    Earley,
+    base >= 4.7 && < 5,
+    containers,
+    lens,
+    mtl,
+    transformers,
+    process,
+    directory,
+    dmenu,
+    libmpd
+  ghc-options:
+    -Wall -threaded -O2 -fno-warn-partial-type-signatures -fdefer-type-errors
 
 executable dmenu-pkill
-  hs-source-dirs:      examples
-  default-language:    Haskell2010
-  main-is:             PKill.hs
-  build-depends:       Earley
-                     , base >= 4.7 && < 5
-                     , containers
-                     , lens
-                     , mtl
-                     , transformers
-                     , process
-                     , directory
-                     , dmenu
-                     , libmpd
-  default-extensions: ScopedTypeVariables
-                    , BangPatterns
-                    , LambdaCase
-                    , TupleSections
-                    , MultiWayIf
-                    , PatternGuards
-                    , MonadComprehensions
-                    , PostfixOperators
-                    , PackageImports
-                    , EmptyDataDecls
-                    , TypeOperators
-                    , ExistentialQuantification
-                    , GADTs
-                    , MultiParamTypeClasses
-                    , FlexibleContexts
-                    , FlexibleInstances
-                    , InstanceSigs
-                    , PolyKinds
-                    , DataKinds
-                    , TypeFamilies
-                    , ConstraintKinds
-                    , PartialTypeSignatures
-                    , LiberalTypeSynonyms
-                    , RankNTypes
-                    , RecursiveDo
-                    , StandaloneDeriving
-                    , UnicodeSyntax
-  ghc-options: -Wall -threaded -O2 -fno-warn-partial-type-signatures -fdefer-type-errors
+  hs-source-dirs:
+    examples
+  default-language:
+    Haskell2010
+  main-is:
+    PKill.hs
+  build-depends:
+    Earley,
+    base >= 4.7 && < 5,
+    containers,
+    lens,
+    mtl,
+    transformers,
+    process,
+    directory,
+    dmenu
+  ghc-options:
+    -Wall -threaded -O2 -fno-warn-partial-type-signatures -fdefer-type-errors
 
 executable dmenu-edit
-  hs-source-dirs:      examples
-  default-language:    Haskell2010
-  main-is:             Edit.hs
-  build-depends:       Earley
-                     , base >= 4.7 && < 5
-                     , containers
-                     , lens
-                     , mtl
-                     , transformers
-                     , process
-                     , directory
-                     , dmenu
-                     , libmpd
-  default-extensions: ScopedTypeVariables
-                    , BangPatterns
-                    , LambdaCase
-                    , TupleSections
-                    , MultiWayIf
-                    , PatternGuards
-                    , MonadComprehensions
-                    , PostfixOperators
-                    , PackageImports
-                    , EmptyDataDecls
-                    , TypeOperators
-                    , ExistentialQuantification
-                    , GADTs
-                    , MultiParamTypeClasses
-                    , FlexibleContexts
-                    , FlexibleInstances
-                    , InstanceSigs
-                    , PolyKinds
-                    , DataKinds
-                    , TypeFamilies
-                    , ConstraintKinds
-                    , PartialTypeSignatures
-                    , LiberalTypeSynonyms
-                    , RankNTypes
-                    , RecursiveDo
-                    , StandaloneDeriving
-                    , UnicodeSyntax
-  ghc-options: -Wall -threaded -O2 -fno-warn-partial-type-signatures -fdefer-type-errors
+  hs-source-dirs:
+    examples
+  default-language:
+    Haskell2010
+  main-is:
+    Edit.hs
+  build-depends:
+    Earley,
+    base >= 4.7 && < 5,
+    containers,
+    lens,
+    mtl,
+    transformers,
+    process,
+    directory,
+    dmenu
+  ghc-options:
+    -Wall -threaded -O2 -fno-warn-partial-type-signatures -fdefer-type-errors
 
 executable dmenu-browse
-  hs-source-dirs:      examples
-  default-language:    Haskell2010
-  main-is:             Browse.hs
-  build-depends:       Earley
-                     , base >= 4.7 && < 5
-                     , containers
-                     , lens
-                     , mtl
-                     , transformers
-                     , process
-                     , directory
-                     , dmenu
-                     , libmpd
-  default-extensions: ScopedTypeVariables
-                    , BangPatterns
-                    , LambdaCase
-                    , TupleSections
-                    , MultiWayIf
-                    , PatternGuards
-                    , MonadComprehensions
-                    , PostfixOperators
-                    , PackageImports
-                    , EmptyDataDecls
-                    , TypeOperators
-                    , ExistentialQuantification
-                    , GADTs
-                    , MultiParamTypeClasses
-                    , FlexibleContexts
-                    , FlexibleInstances
-                    , InstanceSigs
-                    , PolyKinds
-                    , DataKinds
-                    , TypeFamilies
-                    , ConstraintKinds
-                    , PartialTypeSignatures
-                    , LiberalTypeSynonyms
-                    , RankNTypes
-                    , RecursiveDo
-                    , StandaloneDeriving
-                    , UnicodeSyntax
-  ghc-options: -Wall -threaded -O2 -fno-warn-partial-type-signatures -fdefer-type-errors
+  hs-source-dirs:
+    examples
+  default-language:
+    Haskell2010
+  main-is:
+    Browse.hs
+  build-depends:
+    Earley,
+    base >= 4.7 && < 5,
+    containers,
+    lens,
+    mtl,
+    transformers,
+    process,
+    directory,
+    dmenu
+  ghc-options:
+    -Wall -threaded -O2 -fno-warn-partial-type-signatures -fdefer-type-errors
 
 executable dmenu-sudo
-  hs-source-dirs:      examples
-  default-language:    Haskell2010
-  main-is:             Sudo.hs
-  build-depends:       Earley
-                     , base >= 4.7 && < 5
-                     , containers
-                     , lens
-                     , mtl
-                     , transformers
-                     , process
-                     , directory
-                     , dmenu
-                     , libmpd
-  default-extensions: ScopedTypeVariables
-                    , BangPatterns
-                    , LambdaCase
-                    , TupleSections
-                    , MultiWayIf
-                    , PatternGuards
-                    , MonadComprehensions
-                    , PostfixOperators
-                    , PackageImports
-                    , EmptyDataDecls
-                    , TypeOperators
-                    , ExistentialQuantification
-                    , GADTs
-                    , MultiParamTypeClasses
-                    , FlexibleContexts
-                    , FlexibleInstances
-                    , InstanceSigs
-                    , PolyKinds
-                    , DataKinds
-                    , TypeFamilies
-                    , ConstraintKinds
-                    , PartialTypeSignatures
-                    , LiberalTypeSynonyms
-                    , RankNTypes
-                    , RecursiveDo
-                    , StandaloneDeriving
-                    , UnicodeSyntax
-  ghc-options: -Wall -threaded -O2 -fno-warn-partial-type-signatures -fdefer-type-errors
+  hs-source-dirs:
+    examples
+  default-language:
+    Haskell2010
+  main-is:
+    Sudo.hs
+  build-depends:
+    Earley,
+    base >= 4.7 && < 5,
+    containers,
+    lens,
+    mtl,
+    transformers,
+    process,
+    directory,
+    dmenu
+  ghc-options:
+    -Wall -threaded -O2 -fno-warn-partial-type-signatures -fdefer-type-errors
+

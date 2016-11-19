@@ -1,3 +1,5 @@
+{-# LANGUAGE UnicodeSyntax, LambdaCase #-}
+
 -- FIXME: not working yet...
 
 import Control.Monad

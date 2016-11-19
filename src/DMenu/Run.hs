@@ -1,3 +1,6 @@
+{-# LANGUAGE UnicodeSyntax, LambdaCase #-}
+{-# LANGUAGE ScopedTypeVariables, ConstraintKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RecordWildCards, TemplateHaskell #-}
 
 module DMenu.Run where
