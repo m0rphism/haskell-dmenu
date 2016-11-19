@@ -9,13 +9,16 @@ module DMenu (
     -- * Overview
     -- $overview
 
-    -- * Running @dmenu@
+    -- * Types
     DMenuT, MonadDMenu, ProcessError,
+    -- * Running @dmenu@
     run,
+    -- ** Selecting a single item
     selectM, select, selectWithM, selectWith,
+    -- ** Selecting multiple items
     filterM, filter, filterWithM, filterWith,
 
-    -- * Command Line Options
+    -- * @dmenu@ Command Line Options
     Options(..),
     -- ** Lenses
     binaryPath,
@@ -32,7 +35,7 @@ module DMenu (
     selectedFGColor,
     printVersionAndExit,
 
-    -- * Extra Options for the @dmenu2@ fork
+    -- * @dmenu2@-specific Command Line Options
     Options2(..),
     -- ** Lenses
     displayNoItemsIfEmpty,
