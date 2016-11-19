@@ -1,7 +1,7 @@
 name:
   dmenu
 version:
-  0.1.0.0
+  0.1.0.1
 synopsis:
   Complete bindings to the dmenu and dmenu2 command line tools.
 description:
@@ -23,7 +23,7 @@ copyright:
 category:
   System
 build-type:
-  Simple
+  Custom
 cabal-version:
   >=1.10
 extra-doc-files:
