@@ -12,7 +12,7 @@ module DMenu (
 
     -- * Running DMenu
     DMenuT, MonadDMenu, ProcessError,
-    run, selectM, select, selectM', select', repl,
+    run, selectM, select, selectWithM, selectWith, repl,
 
     -- * Command Line Options
     Options(..),
@@ -96,18 +96,5 @@ import DMenu.Run
   supports specifying default command line options for @dmenu@ in a configuration
   file.
 
-  The following example uses this library to let the user choose between the
-  strings @\"A\"@, @\"B\"@, and @\"C\"@.
-
-  > import qualified DMenu
-  >
-  > main :: IO ()
-  > main = print =<< DMenu.select (pure ()) ["A","B","C"]
-
-  The simplest way to use this library is the @"select"@ function.
-  It takes the @dmenu@ options and a list of strings as arguments
-  and returns @IO (Either ProcessError [String])@.
-  The options are specified as a @State Options@ action, so @(pure ())@
-  leaves the @Options@ unchanged. This means that
-
+  The simplest way to use this library is the @select@ function.
 -}

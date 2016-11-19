@@ -40,8 +40,7 @@ type ProcessError = (Int, String)
 -- > main = DMenu.run $ do
 -- >   DMenu.numLines .= 10
 -- >   DMenu.prompt   .= "run"
--- >   sel ← DMenu.selectM ["A","B","C"]
--- >   liftIO $ print sel
+-- >   liftIO . print =<< DMenu.selectM ["A","B","C"]
 run :: MonadIO m => DMenuT m a → m a
 run ma = evalStateT ma =<< readConfigOrDef =<< getDefConfigPath
 
@@ -82,8 +81,8 @@ select m0 entries = run $ m0 >> selectM entries
 
 -- | Same as @selectM@, but allows the user to select from a list of arbitrary
 -- elements @xs@, which have a @String@ representation @f@.
-selectM' :: MonadDMenu m => (a → String) → [a] → m (Either ProcessError [a])
-selectM' f xs = fmap (fmap (fromJust . flip lookup m)) <$> selectM (map f xs)
+selectWithM :: MonadDMenu m => (a → String) → [a] → m (Either ProcessError [a])
+selectWithM f xs = fmap (fmap (fromJust . flip lookup m)) <$> selectM (map f xs)
   where m = [ (f x, x) | x ← xs ]
 
 -- | Same as @select@, but allows the user to select from a list of arbitrary
@@ -94,14 +93,14 @@ selectM' f xs = fmap (fmap (fromJust . flip lookup m)) <$> selectM (map f xs)
 -- > import qualified DMenu
 -- >
 -- > main :: IO ()
--- > main = print =<< DMenu.select' setOptions show [1..10::Int]
+-- > main = print =<< DMenu.selectWith setOptions show [1..10::Int]
 -- >
 -- > setOptions :: DMenu.MonadDMenu m => m ()
 -- > setOptions = do
 -- >   DMenu.numLines .= 10
 -- >   DMenu.prompt   .= "run"
-select' :: MonadIO m => DMenuT m () → (a → String) → [a] → m (Either ProcessError [a])
-select' m0 f xs = run $ m0 >> selectM' f xs
+selectWith :: MonadIO m => DMenuT m () → (a → String) → [a] → m (Either ProcessError [a])
+selectWith m0 f xs = run $ m0 >> selectWithM f xs
 
 -- | Run a repl. For example
 --
