@@ -133,24 +133,6 @@ selectWith
      -- canceled.
 selectWith m0 f xs = run $ m0 >> selectWithM f xs
 
--- | Run a repl. For example
---
--- > import qualified DMenu
--- >
--- > main :: IO ()
--- > main = DMenu.repl setOptions ["A","B","C"] $ \case
--- >   Left _pe → pure Nothing
--- >   Right ss → do
--- >     print ss
--- >     pure $ Just $ map (head ss ++ ) ["1","2","3"]
-repl :: MonadIO m => DMenuT m a → [String] → (Either ProcessError [String] → m (Maybe [String])) → m ()
-repl m0 ss0 f = run $ m0 >> go (Right ss0) where
-  go ess = do
-    mss ← lift $ f ess
-    forM_ mss $ \ss → do
-      ess' ← selectM ss
-      go ess'
-
 
 splitFirstWord :: String → (String, String)
 splitFirstWord = go "" where

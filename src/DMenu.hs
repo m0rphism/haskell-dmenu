@@ -10,7 +10,7 @@ module DMenu (
 
     -- * Running DMenu
     DMenuT, MonadDMenu, ProcessError,
-    run, selectM, select, selectWithM, selectWith, repl,
+    run, selectM, select, selectWithM, selectWith,
 
     -- * Command Line Options
     Options(..),
