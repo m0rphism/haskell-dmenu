@@ -74,7 +74,7 @@ import DMenu.Run
 
   The @dmenu@ command line utility
 
-  1.  takes @Options@ as arguments and reads a list of strings from @stdin@,
+  1.  takes @"Options"@ as arguments and reads a list of strings from @stdin@,
   2.  presents the list in a special overlay window, in which the user can select
       from the list via fuzzy matching, and
   3.  prints the selected string to @stdout@ or fails with exit code @1@ if the
@@ -95,7 +95,7 @@ import DMenu.Run
   > main :: IO ()
   > main = print =<< DMenu.select (pure ()) ["A","B","C"]
 
-  The simplest way to use this library is the @select@ function.
+  The simplest way to use this library is the @"select"@ function.
   It takes the @dmenu@ options and a list of strings as arguments
   and returns @IO (Either ProcessError [String])@.
   The options are specified as a @State Options@ action, so @(pure ())@
