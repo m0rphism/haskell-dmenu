@@ -29,9 +29,7 @@ data Options = Options
   }
 
 -- | Contains the command line options of @dmenu2@ which are not part of
--- @dmenu@. The @_filterMode@ option is not listed; it can be implicitly used by
--- using @DMenu.filter@ instead of @DMenu.select@. The option descriptions are
--- copied from the @dmenu2@ @man@ page.
+-- @dmenu@. The option descriptions are copied from the @dmenu2@ @man@ page.
 data Options2 = Options2
   { _displayNoItemsIfEmpty   :: Bool
   , _filterMode              :: Bool
@@ -60,31 +58,36 @@ makeLensesL ''Options
 makeLensesL ''Options2
 
 -- | Path to the the dmenu executable file.
---   Default looks for @dmenu@ in the @PATH@ enviroment variable.
+-- Default looks for @dmenu@ in the @PATH@ enviroment variable.
 binaryPath :: Lens' Options FilePath
 binaryPath = _binaryPathL
 -- | @-b@; dmenu appears at the bottom of the screen.
 displayAtBottom :: Lens' Options Bool
 displayAtBottom = _displayAtBottomL
--- | @-f@; dmenu grabs the keyboard before reading stdin.  This is faster, but will lock up X until stdin reaches end-of-file.
+-- | @-f@; dmenu grabs the keyboard before reading stdin. This is faster, but
+-- will lock up X until stdin reaches end-of-file.
 grabKeyboardBeforeStdin :: Lens' Options Bool
 grabKeyboardBeforeStdin = _grabKeyboardBeforeStdinL
 -- | @-i@; dmenu matches menu items case insensitively.
 caseInsensitive :: Lens' Options Bool
 caseInsensitive = _caseInsensitiveL
--- | @-m screen@; dmenu is displayed on the monitor number supplied. Monitor numbers are starting from 0.
+-- | @-m screen@; dmenu is displayed on the monitor number supplied. Monitor
+-- numbers are starting from 0.
 spawnOnMonitor :: Lens' Options Int
 spawnOnMonitor = _spawnOnMonitorL
 -- | @-l lines@; dmenu lists items vertically, with the given number of lines.
 numLines :: Lens' Options Int
 numLines = _numLinesL
--- | @-p prompt@; defines the prompt to be displayed to the left of the input field.
+-- | @-p prompt@; defines the prompt to be displayed to the left of the input
+-- field.
 prompt :: Lens' Options String
 prompt = _promptL
--- | @-fn font@; defines the font or font set used. eg. @\"fixed\"@ or @\"Monospace-12:normal\"@ (an xft font)
+-- | @-fn font@; defines the font or font set used. eg. @\"fixed\"@ or
+-- @\"Monospace-12:normal\"@ (an xft font)
 font :: Lens' Options String
 font = _fontL
--- | @-nb color@; defines the normal background color.  @#RGB@, @#RRGGBB@, and X color names are supported.
+-- | @-nb color@; defines the normal background color. @#RGB@, @#RRGGBB@, and X
+-- color names are supported.
 normalBGColor :: Lens' Options Color
 normalBGColor = _normalBGColorL
 -- | @-nf color@; defines the normal foreground color.
@@ -111,13 +114,20 @@ noDMenu2 = _noDMenu2L
 -- | @-q@; dmenu will not show any items if the search string is empty.
 displayNoItemsIfEmpty :: Lens' Options2 Bool
 displayNoItemsIfEmpty = _displayNoItemsIfEmptyL
--- | @-r@; activates filter mode. All matching items currently shown in the list will be selected, starting with the item that is highlighted and wrapping around to the beginning of the list. (/Note/: Instead of setting this flag yourself, the @dmenu@ @filter@ functions can be used instead of the @select@ functions.)
+-- | @-r@; activates filter mode. All matching items currently shown in the list
+-- will be selected, starting with the item that is highlighted and wrapping around
+-- to the beginning of the list. (/Note/: Instead of setting this flag yourself,
+-- the @dmenu@ @filter@ functions can be used instead of the @select@ functions.)
 filterMode :: Lens' Options2 Bool
 filterMode = _filterModeL
--- | @-z@; dmenu uses fuzzy matching. It matches items that have all characters entered, in sequence they are entered, but there may be any number of characters between matched characters.  For example it takes @\"txt\"@ makes it to @\"*t*x*t\"@ glob pattern and checks if it matches.
+-- | @-z@; dmenu uses fuzzy matching. It matches items that have all characters
+-- entered, in sequence they are entered, but there may be any number of characters
+-- between matched characters. For example it takes @\"txt\"@ makes it to
+-- @\"*t*x*t\"@ glob pattern and checks if it matches.
 fuzzyMatching :: Lens' Options2 Bool
 fuzzyMatching = _fuzzyMatchingL
--- | @-t@; dmenu uses space-separated tokens to match menu items. Using this overrides @-z@ option.
+-- | @-t@; dmenu uses space-separated tokens to match menu items. Using this
+-- overrides @-z@ option.
 tokenMatching :: Lens' Options2 Bool
 tokenMatching = _tokenMatchingL
 -- | @-mask@; dmenu masks input with asterisk characters (@*@).
@@ -126,7 +136,8 @@ maskInputWithStar = _maskInputWithStarL
 -- | @-noinput@; dmenu ignores input from stdin (equivalent to: @echo | dmenu@).
 ignoreStdin :: Lens' Options2 Bool
 ignoreStdin = _ignoreStdinL
--- | @-s screen@; dmenu apears on the specified screen number. Number given corespondes to screen number in X configuration.
+-- | @-s screen@; dmenu apears on the specified screen number. Number given
+-- corespondes to screen number in X configuration.
 spawnOnScreen :: Lens' Options2 Int
 spawnOnScreen = _spawnOnScreenL
 -- | @-name name@; defines window name for dmenu. Defaults to @\"dmenu\"@.
@@ -138,10 +149,12 @@ windowClass = _windowClassL
 -- | @-o opacity@; defines window opacity for dmenu. Defaults to @1.0@.
 windowOpacity :: Lens' Options2 Double
 windowOpacity = _windowOpacityL
--- | @-dim opacity@; enables screen dimming when dmenu appers. Takes dim opacity as argument.
+-- | @-dim opacity@; enables screen dimming when dmenu appers. Takes dim opacity
+-- as argument.
 windowDimOpacity :: Lens' Options2 Double
 windowDimOpacity = _windowDimOpacityL
--- | @-dc color@; defines color of screen dimming. Active only when @-dim@ in effect. Defautls to black (@#000000@)
+-- | @-dc color@; defines color of screen dimming. Active only when @-dim@ in
+-- effect. Defautls to black (@#000000@)
 windowDimColor :: Lens' Options2 Color
 windowDimColor = _windowDimColorL
 -- | @-h height@; defines the height of the bar in pixels.

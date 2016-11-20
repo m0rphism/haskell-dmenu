@@ -1,7 +1,7 @@
 name:
   dmenu
 version:
-  0.2.0.0
+  0.3.0.0
 synopsis:
   Complete bindings to the dmenu and dmenu2 command line tools.
 description:
@@ -48,6 +48,7 @@ library
     DMenu
   other-modules:
     DMenu.Color
+    DMenu.Lens
     DMenu.Options
     DMenu.Run
 

@@ -32,6 +32,8 @@ module DMenu (
     selectedBGColor,
     selectedFGColor,
     printVersionAndExit,
+    dmenu2,
+    noDMenu2,
 
     -- * @dmenu2@-specific Command Line Options
     Options2(),
