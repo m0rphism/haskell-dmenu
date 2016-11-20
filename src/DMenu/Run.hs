@@ -28,7 +28,7 @@ type MonadDMenu m = (MonadIO m, MonadState Options m)
 -- and @stderr@ output.
 type ProcessError = (Int, String)
 
--- | Run a @StateT Options m a@ action using the command line options from the
+-- | Run a @StateT@ 'Options' @m a@ action using the command line options from the
 -- config file or an empty set of options as initial state.
 --
 -- For example
@@ -81,7 +81,7 @@ selectM entries = do
 select
   :: MonadIO m
   => DMenuT m ()
-     -- ^ @State Options@ action which changes the default command line
+     -- ^ 'State' 'Options' action which changes the default command line
      -- options.
    → [String]
      -- ^ List from which the user should select.
@@ -121,7 +121,7 @@ selectWithM f xs = fmap (fromJust . flip lookup m) <$> selectM (map f xs)
 selectWith
   :: MonadIO m
   => DMenuT m ()
-     -- ^ @State Options@ action which changes the default command line
+     -- ^ 'State' 'Options' action which changes the default command line
      -- options.
    → (a → String)
      -- ^ How to display an @a@ in @dmenu@.
@@ -160,7 +160,7 @@ filterM entries = do
 filter
   :: MonadIO m
   => DMenuT m ()
-     -- ^ @State Options@ action which changes the default command line
+     -- ^ 'State' 'Options' action which changes the default command line
      -- options.
    → [String]
      -- ^ List from which the user should select.
@@ -190,7 +190,7 @@ filterWithM f xs = fmap (fmap (fromJust . flip lookup m)) <$> filterM (map f xs)
 filterWith
   :: MonadIO m
   => DMenuT m ()
-     -- ^ @State Options@ action which changes the default command line
+     -- ^ 'State' 'Options' action which changes the default command line
      -- options.
    → (a → String)
      -- ^ How to display an @a@ in @dmenu@.

@@ -105,7 +105,7 @@ printVersionAndExit = _printVersionAndExitL
 -- | Extra options only available in the dmenu2 fork.
 dmenu2 :: Lens' Options Options2
 dmenu2 = _dmenu2L
--- | When set to @True@, the @dmenu2@ options in '_dmenu2' are ignored. This
+-- | When set to @True@, the 'dmenu2' options are ignored. This
 -- ensures compatibility with the normal @dmenu@. A user may set this flag
 -- in the configuration file.
 noDMenu2 :: Lens' Options Bool

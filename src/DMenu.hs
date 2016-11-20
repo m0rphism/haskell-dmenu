@@ -112,7 +112,7 @@ import Prelude hiding (filter)
   Note for @stack@ users: When running programs using this library via
   @stack exec@, the program may fail to find @dmenu@ in the @PATH@.
   This problem can be solved by running the program directly without @stack@, or
-  by temporarily using an absolute path for @dmenu@ in the '_binaryPath' option.
+  by temporarily using an absolute path for @dmenu@ in the 'binaryPath' option.
 -}
 {- $configFile
   The default @Options@ used by 'run', 'select', etc. can be specified
