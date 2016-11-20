@@ -17,7 +17,7 @@ module DMenu (
     filterM, filter, filterWithM, filterWith,
 
     -- * @dmenu@ Command Line Options
-    Options(..),
+    Options(),
     -- ** Lenses
     binaryPath,
     displayAtBottom,
@@ -34,7 +34,7 @@ module DMenu (
     printVersionAndExit,
 
     -- * @dmenu2@-specific Command Line Options
-    Options2(..),
+    Options2(),
     -- ** Lenses
     displayNoItemsIfEmpty,
     filterMode,
