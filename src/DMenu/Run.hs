@@ -8,6 +8,7 @@ module DMenu.Run where
 import Control.Exception
 import Control.Monad.State.Strict hiding (filterM)
 import Control.Lens
+import Control.Monad hiding (filterM)
 import Data.Maybe
 import System.Exit
 import System.Process
@@ -223,7 +224,14 @@ readFileMay path = liftIO $
   (Just <$> readFile path) `catch` (\(_ :: SomeException) → pure Nothing)
 
 readConfigOrDef :: MonadIO m => FilePath → m Options
-readConfigOrDef = fmap f . readFileMay where
+readConfigOrDef = f <=< readFileMay where
   f = \case
-    Nothing → defOptions
-    Just content → parseOptions content
+    Nothing →
+      pure defOptions
+    Just content →
+      case parseOptions content of
+        Right opts →
+          pure opts
+        Left err → liftIO $ do
+          putStrLn $ "Failed parsing `~/.haskell-dmenu` file: " ++ err
+          exitFailure

@@ -4,6 +4,8 @@
 module DMenu.Options where
 
 import Control.Lens
+import Text.Read (readMaybe)
+import Data.Maybe (fromMaybe)
 
 import DMenu.Color
 import DMenu.Lens
@@ -274,45 +276,55 @@ options2ToArgs (Options2{..}) = concat $ concat
   , [ [ "-hist", show _historyFile             ] | _historyFile /= "" ]
   ]
 
-parseOptions :: String → Options
-parseOptions = foldl f defOptions . map splitFirstWord . lines where
-  f :: Options → (String, String) → Options
-  f opts (cmd, args) = opts & case cmd of
-    "binaryPath"              → binaryPath                       .~ args
-    "displayAtBottom"         → displayAtBottom                  .~ read args
-    "displayNoItemsIfEmpty"   → dmenu2 . displayNoItemsIfEmpty   .~ read args
-    "grabKeyboardBeforeStdin" → grabKeyboardBeforeStdin          .~ read args
-    "filterMode"              → dmenu2 . filterMode              .~ read args
-    "caseInsensitive"         → caseInsensitive                  .~ read args
-    "fuzzyMatching"           → dmenu2 . fuzzyMatching           .~ read args
-    "tokenMatching"           → dmenu2 . tokenMatching           .~ read args
-    "maskInputWithStar"       → dmenu2 . maskInputWithStar       .~ read args
-    "ignoreStdin"             → dmenu2 . ignoreStdin             .~ read args
-    "spawnOnScreen"           → dmenu2 . spawnOnScreen           .~ read args
-    "spawnOnMonitor"          → spawnOnMonitor                   .~ read args
-    "windowName"              → dmenu2 . windowName              .~ args
-    "windowClass"             → dmenu2 . windowClass             .~ args
-    "windowOpacity"           → dmenu2 . windowOpacity           .~ read args
-    "windowDimOpacity"        → dmenu2 . windowDimOpacity        .~ read args
-    "windowDimColor"          → dmenu2 . windowDimColor          .~ read args
-    "numLines"                → numLines                         .~ read args
-    "heightInPixels"          → dmenu2 . heightInPixels          .~ read args
-    "underlineHeightInPixels" → dmenu2 . underlineHeightInPixels .~ read args
-    "prompt"                  → prompt                           .~ args
-    "font"                    → font                             .~ args
-    "windowOffsetX"           → dmenu2 . windowOffsetX           .~ read args
-    "windowOffsetY"           → dmenu2 . windowOffsetY           .~ read args
-    "width"                   → dmenu2 . width                   .~ read args
-    "normalBGColor"           → normalBGColor                    .~ read args
-    "normalFGColor"           → normalFGColor                    .~ read args
-    "selectedBGColor"         → selectedBGColor                  .~ read args
-    "selectedFGColor"         → selectedFGColor                  .~ read args
-    "underlineColor"          → dmenu2 . underlineColor          .~ read args
-    "historyFile"             → dmenu2 . historyFile             .~ args
-    "printVersionAndExit"     → printVersionAndExit              .~ read args
-    "noDMenu2"                → noDMenu2                         .~ read args
-    ""                        → id
-    _                         → error $ "Invalid command found when parsing dmenu config file: " ++ cmd
+readOr :: Read a => String → String → Either String a
+readOr s err = case readMaybe s of
+  Nothing -> Left err
+  Just x  -> Right x
+
+parseOptions :: String → Either String Options
+parseOptions = foldl f (Right defOptions) . map splitFirstWord . lines where
+  stringErr cmd =  "`" ++ cmd ++ "` must be a string, e.g. `\"/foo/bar\"`"
+  boolErr   cmd =  "`" ++ cmd ++ "` must be a boolean, i.e. `True` or `False`."
+  natErr    cmd =  "`" ++ cmd ++ "` must be a natural number, i.e. `0` or `20`."
+  floatErr  cmd =  "`" ++ cmd ++ "` must be a floating point number, i.e. `0` or `20.23`."
+  colorErr  cmd =  "`" ++ cmd ++ "` must be a color, i.e. `RGBColorF 1 0 0` for red."
+  f :: Either String Options → (String, String) → Either String Options
+  f opts (cmd, args) = opts >>= case cmd of
+    "binaryPath"              → mapM (binaryPath                       .~) $ readOr args (stringErr cmd)
+    "displayAtBottom"         → mapM (displayAtBottom                  .~) $ readOr args (boolErr cmd)
+    "displayNoItemsIfEmpty"   → mapM (dmenu2 . displayNoItemsIfEmpty   .~) $ readOr args (boolErr cmd)
+    "grabKeyboardBeforeStdin" → mapM (grabKeyboardBeforeStdin          .~) $ readOr args (boolErr cmd)
+    "filterMode"              → mapM (dmenu2 . filterMode              .~) $ readOr args (boolErr cmd)
+    "caseInsensitive"         → mapM (caseInsensitive                  .~) $ readOr args (boolErr cmd)
+    "fuzzyMatching"           → mapM (dmenu2 . fuzzyMatching           .~) $ readOr args (boolErr cmd)
+    "tokenMatching"           → mapM (dmenu2 . tokenMatching           .~) $ readOr args (boolErr cmd)
+    "maskInputWithStar"       → mapM (dmenu2 . maskInputWithStar       .~) $ readOr args (boolErr cmd)
+    "ignoreStdin"             → mapM (dmenu2 . ignoreStdin             .~) $ readOr args (boolErr cmd)
+    "spawnOnScreen"           → mapM (dmenu2 . spawnOnScreen           .~) $ readOr args (natErr cmd)
+    "spawnOnMonitor"          → mapM (spawnOnMonitor                   .~) $ readOr args (natErr cmd)
+    "windowName"              → mapM (dmenu2 . windowName              .~) $ readOr args (stringErr cmd)
+    "windowClass"             → mapM (dmenu2 . windowClass             .~) $ readOr args (stringErr cmd)
+    "windowOpacity"           → mapM (dmenu2 . windowOpacity           .~) $ readOr args (floatErr cmd)
+    "windowDimOpacity"        → mapM (dmenu2 . windowDimOpacity        .~) $ readOr args (floatErr cmd)
+    "windowDimColor"          → mapM (dmenu2 . windowDimColor          .~) $ readOr args (colorErr cmd)
+    "numLines"                → mapM (numLines                         .~) $ readOr args (natErr cmd)
+    "heightInPixels"          → mapM (dmenu2 . heightInPixels          .~) $ readOr args (natErr cmd)
+    "underlineHeightInPixels" → mapM (dmenu2 . underlineHeightInPixels .~) $ readOr args (natErr cmd)
+    "prompt"                  → mapM (prompt                           .~) $ readOr args (stringErr cmd)
+    "font"                    → mapM (font                             .~) $ readOr args (stringErr cmd)
+    "windowOffsetX"           → mapM (dmenu2 . windowOffsetX           .~) $ readOr args (natErr cmd)
+    "windowOffsetY"           → mapM (dmenu2 . windowOffsetY           .~) $ readOr args (natErr cmd)
+    "width"                   → mapM (dmenu2 . width                   .~) $ readOr args (natErr cmd)
+    "normalBGColor"           → mapM (normalBGColor                    .~) $ readOr args (colorErr cmd)
+    "normalFGColor"           → mapM (normalFGColor                    .~) $ readOr args (colorErr cmd)
+    "selectedBGColor"         → mapM (selectedBGColor                  .~) $ readOr args (colorErr cmd)
+    "selectedFGColor"         → mapM (selectedFGColor                  .~) $ readOr args (colorErr cmd)
+    "underlineColor"          → mapM (dmenu2 . underlineColor          .~) $ readOr args (colorErr cmd)
+    "historyFile"             → mapM (dmenu2 . historyFile             .~) $ readOr args (stringErr cmd)
+    "printVersionAndExit"     → mapM (printVersionAndExit              .~) $ readOr args (boolErr cmd)
+    "noDMenu2"                → mapM (noDMenu2                         .~) $ readOr args (boolErr cmd)
+    ""                        → pure
+    _                         → const $ Left $ "Invalid command: " ++ cmd
 
 -- printOptions :: Options → String
 -- printOptions Options{..} = unlines $ concat

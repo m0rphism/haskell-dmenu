@@ -125,12 +125,12 @@ import Prelude hiding (filter)
   the first section:
 
   > numLines         15
-  > font             FiraMono:size=11
+  > font             "FiraMono:size=11"
   > caseInsensitive  True
   > normalBGColor    RGBColorF 0.02 0.02 0.02
 
   The configuration file contains one line per option.
   Each line consists of an option name and a value for the option.
   The option names are identical to the corresponding lens names.
-  The values are read with @Prelude.read@ except for @Strings@ which don't need double quotes.
+  The values are read via their 'Read' instances.
 -}
