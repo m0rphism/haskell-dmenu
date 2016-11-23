@@ -69,6 +69,7 @@ module DMenu (
 
     -- * Configuration File
     -- $configFile
+    configFileUsage,
   ) where
 
 import Control.Lens
@@ -133,4 +134,10 @@ import Prelude hiding (filter)
   Each line consists of an option name and a value for the option.
   The option names are identical to the corresponding lens names.
   The values are read via their 'Read' instances.
+
+  If reading a value fails, 'exitFailure' is called and an error message is
+  presented to the user, e.g.
+
+  > `caseInsensitive` must be a boolean, i.e. `True` or `False`.
+
 -}

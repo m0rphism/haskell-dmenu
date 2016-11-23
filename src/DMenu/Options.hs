@@ -326,6 +326,71 @@ parseOptions = foldl f (Right defOptions) . map splitFirstWord . lines where
     ""                        → pure
     _                         → const $ Left $ "Invalid command: " ++ cmd
 
+-- | Description of the configuration file syntax of ~/.haskell-dmenu, which can
+-- be included in the usage information of command line clients to inform
+-- their users about the configuration file. See the source for details.
+configFileUsage :: String
+configFileUsage = unlines
+  [ "This application is built with the dmenu Haskell bindings library, which"
+  , "supports specifying default command line arguments passed to dmenu in the"
+  , "~/.haskell-dmenu file."
+  , ""
+  , "The following shows an example ~/.haskell-dmenu file:"
+  , ""
+  , "  numLines         15"
+  , "  font             \"FiraMono:size=11\""
+  , "  caseInsensitive  True"
+  , "  normalBGColor    RGBColorF 0.02 0.02 0.02"
+  , ""
+  , "Each line specifies the value of a dmenu option."
+  , "The first word of a line specifies the option, the rest of the line the value."
+  , "Depending on the option, the value has one of the following types and forms:"
+  , ""
+  , "  Nat      A natural number, e.g. 0, 1, 2, etc."
+  , "  Float    A floating point number, e.g. -12 or 13.43"
+  , "  String   A string literal, e.g. \"foo bar\""
+  , "  Color    An RGB color. For example, the color red can be specified as"
+  , "             HexColor 0xFF0000        (hexadecimal)"
+  , "             RGBColor 255 0 0         (dezimal, split components)"
+  , "             RGBColorF 1.0 0.0 0.0    (normalized, split components)"
+  , ""
+  , "All dmenu and dmenu2 options are supported:"
+  , ""
+  , "  binaryPath              : String    Shell command to run dmenu or dmenu2 (default: \"dmenu\")"
+  , "  displayAtBottom         : Bool      Display dmenu at the bottom of the screen, instead of the top."
+  , "  displayNoItemsIfEmpty   : Bool"
+  , "  grabKeyboardBeforeStdin : Bool"
+  , "  filterMode              : Bool      "
+  , "  caseInsensitive         : Bool      Use case insensitive fuzzy matching."
+  , "  fuzzyMatching           : Bool"
+  , "  tokenMatching           : Bool"
+  , "  maskInputWithStar       : Bool"
+  , "  ignoreStdin             : Bool"
+  , "  spawnOnScreen           : Nat"
+  , "  spawnOnMonitor          : Nat"
+  , "  windowName              : String"
+  , "  windowClass             : String"
+  , "  windowOpacity           : Float"
+  , "  windowDimOpacity        : Float"
+  , "  windowDimColor          : Color"
+  , "  numLines                : Nat"
+  , "  heightInPixels          : Nat"
+  , "  underlineHeightInPixels : Nat"
+  , "  prompt                  : String"
+  , "  font                    : String"
+  , "  windowOffsetX           : Nat"
+  , "  windowOffsetY           : Nat"
+  , "  width                   : Nat"
+  , "  normalBGColor           : Color"
+  , "  normalFGColor           : Color"
+  , "  selectedBGColor         : Color"
+  , "  selectedFGColor         : Color"
+  , "  underlineColor          : Color"
+  , "  historyFile             : String"
+  , "  printVersionAndExit     : Bool"
+  , "  noDMenu2                : Bool"
+  ]
+
 -- printOptions :: Options → String
 -- printOptions Options{..} = unlines $ concat
 --   [ [ "binaryPath " ++ _binaryPath                                | _binaryPath /= "" ]
