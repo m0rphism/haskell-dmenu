@@ -26,6 +26,7 @@ data Options = Options
   , _printVersionAndExit     :: Bool
   , _dmenu2                  :: Options2
   , _noDMenu2                :: Bool
+  , _extraArgs               :: [String]
   }
 
 -- | Contains the command line options of @dmenu2@ which are not part of
@@ -110,6 +111,14 @@ dmenu2 = _dmenu2L
 -- in the configuration file.
 noDMenu2 :: Lens' Options Bool
 noDMenu2 = _noDMenu2L
+
+-- | List of extra command line arguments to pass to @dmenu@.
+-- This can be useful, when the client wants to forward some of its own command
+-- line arguments directly to the executed @dmenu@ processes.
+--
+-- Default: @[]@
+extraArgs :: Lens' Options [String]
+extraArgs = _extraArgsL
 
 -- | @-q@; dmenu will not show any items if the search string is empty.
 displayNoItemsIfEmpty :: Lens' Options2 Bool
@@ -197,6 +206,7 @@ defOptions = Options
   , _printVersionAndExit = False
   , _dmenu2 = defOptions2
   , _noDMenu2 = False
+  , _extraArgs = []
   }
 
 defOptions2 :: Options2
@@ -223,23 +233,26 @@ defOptions2 = Options2
   }
 
 optionsToArgs :: Options → [String]
-optionsToArgs (Options{..}) = concat $ concat $
-  [ [ [ "-b"                                   ] | _displayAtBottom ]
-  , [ [ "-f"                                   ] | _grabKeyboardBeforeStdin ]
-  , [ [ "-i"                                   ] | _caseInsensitive ]
-  , [ [ "-m", show _spawnOnMonitor             ] | _spawnOnMonitor /= (-1) ]
-  , [ [ "-l", show _numLines                   ] | _numLines /= (-1) ]
-  , [ [ "-p", _prompt                          ] | _prompt /= "" ]
-  , [ [ "-fn", _font                           ] | _font /= "" ]
-  , [ [ "-nb", showColorAsHex _normalBGColor   ] | _normalBGColor /= HexColor (-1) ]
-  , [ [ "-nf", showColorAsHex _normalFGColor   ] | _normalFGColor /= HexColor (-1) ]
-  , [ [ "-sb", showColorAsHex _selectedBGColor ] | _selectedBGColor /= HexColor (-1) ]
-  , [ [ "-sf", showColorAsHex _selectedFGColor ] | _selectedFGColor /= HexColor (-1) ]
-  , [ [ "-v"                                   ] | _printVersionAndExit ]
-  ] ++ if _noDMenu2 then [] else options2ToArgs _dmenu2
+optionsToArgs (Options{..}) = dmenuArgs ++ dmenu2Args ++ _extraArgs where
+  dmenuArgs = concat $ concat
+    [ [ [ "-b"                                   ] | _displayAtBottom ]
+    , [ [ "-f"                                   ] | _grabKeyboardBeforeStdin ]
+    , [ [ "-i"                                   ] | _caseInsensitive ]
+    , [ [ "-m", show _spawnOnMonitor             ] | _spawnOnMonitor /= (-1) ]
+    , [ [ "-l", show _numLines                   ] | _numLines /= (-1) ]
+    , [ [ "-p", _prompt                          ] | _prompt /= "" ]
+    , [ [ "-fn", _font                           ] | _font /= "" ]
+    , [ [ "-nb", showColorAsHex _normalBGColor   ] | _normalBGColor /= HexColor (-1) ]
+    , [ [ "-nf", showColorAsHex _normalFGColor   ] | _normalFGColor /= HexColor (-1) ]
+    , [ [ "-sb", showColorAsHex _selectedBGColor ] | _selectedBGColor /= HexColor (-1) ]
+    , [ [ "-sf", showColorAsHex _selectedFGColor ] | _selectedFGColor /= HexColor (-1) ]
+    , [ [ "-v"                                   ] | _printVersionAndExit ]
+    ]
+  dmenu2Args | _noDMenu2 = []
+             | otherwise = options2ToArgs _dmenu2
 
-options2ToArgs :: Options2 → [[[String]]]
-options2ToArgs (Options2{..}) =
+options2ToArgs :: Options2 → [String]
+options2ToArgs (Options2{..}) = concat $ concat
   [ [ [ "-q"                                   ] | _displayNoItemsIfEmpty ]
   , [ [ "-r"                                   ] | _filterMode ]
   , [ [ "-z"                                   ] | _fuzzyMatching ]

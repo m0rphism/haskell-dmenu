@@ -34,6 +34,9 @@ module DMenu (
     printVersionAndExit,
     dmenu2,
     noDMenu2,
+    extraArgs,
+    -- ** Forwarding Command Line Arguments
+    forwardExtraArgs,
 
     -- * @dmenu2@-specific Command Line Options
     Options2(),

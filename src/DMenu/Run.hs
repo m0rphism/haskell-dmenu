@@ -12,6 +12,8 @@ import Data.Maybe
 import System.Exit
 import System.Process
 import System.Directory
+import System.Environment
+import System.IO
 import Prelude hiding (filter)
 
 import DMenu.Options
@@ -200,6 +202,14 @@ filterWith
      -- ^ The selection made by the user, or a 'ProcessError', if the user
      -- canceled.
 filterWith m0 f xs = run $ m0 >> filterWithM f xs
+
+
+-- | Forwards all command line arguments from 'getArgs', which appear after the
+-- first @\"--\"@ argument, to @dmenu@ by setting them as 'extraArgs'.
+forwardExtraArgs :: MonadDMenu m => m ()
+forwardExtraArgs = do
+  args <- liftIO getArgs
+  extraArgs .= drop 1 (dropWhile (/= "--") args)
 
 
 splitFirstWord :: String → (String, String)
