@@ -12,9 +12,9 @@ Each line specifies the value of a dmenu option.
 The first word of a line specifies the option, the rest of the line the value.
 Depending on the option, the value has one of the following types and forms:
 
--   `Nat`.    A natural number, e.g. 0, 1, 2, etc.
--   `Float`.  A floating point number, e.g. -12 or 13.43
--   `String`. A string literal, e.g. "foo bar"
+-   `Nat`.    A natural number, e.g. `0`, `1`, `2`, etc.
+-   `Float`.  A floating point number, e.g. `-12` or `13.43`
+-   `String`. A string literal, e.g. `"foo bar"`
 -   `Color`.  An RGB color. For example, the color red can be specified as
 
     - `HexColor 0xFF0000`        (hexadecimal)
