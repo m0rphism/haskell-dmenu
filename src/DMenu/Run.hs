@@ -8,7 +8,6 @@ module DMenu.Run where
 import Control.Exception
 import Control.Monad.State.Strict hiding (filterM)
 import Control.Lens
-import Control.Monad hiding (filterM)
 import Data.Maybe
 import System.Exit
 import System.Process

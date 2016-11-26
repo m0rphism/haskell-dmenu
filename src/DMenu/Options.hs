@@ -5,7 +5,6 @@ module DMenu.Options where
 
 import Control.Lens
 import Text.Read (readMaybe)
-import Data.Maybe (fromMaybe)
 
 import DMenu.Color
 import DMenu.Lens
