@@ -326,14 +326,15 @@ parseOptions = foldl f (Right defOptions) . map splitFirstWord . lines where
     ""                        → pure
     _                         → const $ Left $ "Invalid command: " ++ cmd
 
--- | Description of the configuration file syntax of ~/.haskell-dmenu, which can
--- be included in the usage information of command line clients to inform
--- their users about the configuration file. See the source for details.
+-- | Description of the configuration file syntax of ~/.haskell-dmenu, as described
+-- in the <https://github.com/m0rphism/haskell-dmenu/CONFIG.md CONFIG.md> file.
+--
+-- This 'String' may be useful to inform clients about the config file, e.g. in
+-- the usage information.
 configFileUsage :: String
 configFileUsage = unlines
-  [ "This application is built with the dmenu Haskell bindings library, which"
-  , "supports specifying default command line arguments passed to dmenu in the"
-  , "~/.haskell-dmenu file."
+  [ "The `dmenu` Haskell bindings support specifying default command line arguments"
+  , "passed to `dmenu` in the `~/.haskell-dmenu` file."
   , ""
   , "The following shows an example ~/.haskell-dmenu file:"
   , ""
@@ -356,12 +357,12 @@ configFileUsage = unlines
   , ""
   , "All dmenu and dmenu2 options are supported:"
   , ""
-  , "  binaryPath              : String    Shell command to run dmenu or dmenu2 (default: \"dmenu\")"
-  , "  displayAtBottom         : Bool      Display dmenu at the bottom of the screen, instead of the top."
+  , "  binaryPath              : String"
+  , "  displayAtBottom         : Bool"
   , "  displayNoItemsIfEmpty   : Bool"
   , "  grabKeyboardBeforeStdin : Bool"
-  , "  filterMode              : Bool      "
-  , "  caseInsensitive         : Bool      Use case insensitive fuzzy matching."
+  , "  filterMode              : Bool"
+  , "  caseInsensitive         : Bool"
   , "  fuzzyMatching           : Bool"
   , "  tokenMatching           : Bool"
   , "  maskInputWithStar       : Bool"
