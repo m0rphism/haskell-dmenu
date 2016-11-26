@@ -325,7 +325,7 @@ parseOptions = foldl f (Right defOptions) . map splitFirstWord . lines where
     ""                        → pure
     _                         → const $ Left $ "Invalid command: " ++ cmd
 
--- | Description of the configuration file syntax of ~/.haskell-dmenu, as described
+-- | Description of the configuration file syntax of ~/.haskell-dmenu, as written
 -- in the <https://github.com/m0rphism/haskell-dmenu/blob/master/CONFIG.md CONFIG.md> file.
 --
 -- This 'String' may be useful to inform clients about the config file, e.g. in
