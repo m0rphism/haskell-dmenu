@@ -4,24 +4,18 @@ let
 
   inherit (nixpkgs) pkgs;
 
-  f = { mkDerivation, base, containers, directory, Earley, lens
-      , libmpd, mtl, process, stdenv, transformers
+  f = { mkDerivation, base, containers, directory, lens, mtl
+      , process, stdenv, transformers
       }:
       mkDerivation {
         pname = "dmenu";
-        version = "0.1.0.0";
+        version = "0.3.1.0";
         src = ./.;
-        isLibrary = true;
-        isExecutable = true;
         libraryHaskellDepends = [
-          base containers directory Earley lens mtl process transformers
+          base containers directory lens mtl process transformers
         ];
-        executableHaskellDepends = [
-          base containers directory Earley lens libmpd mtl process
-          transformers
-        ];
-        homepage = "https://github.com/githubuser/system-fc#readme";
-        description = "Simple project template from stack";
+        homepage = "https://github.com/m0rphism/haskell-dmenu";
+        description = "Complete bindings to the dmenu and dmenu2 command line tools";
         license = stdenv.lib.licenses.bsd3;
       };
 
